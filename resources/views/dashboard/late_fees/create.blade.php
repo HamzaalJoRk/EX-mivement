@@ -1,0 +1,13 @@
+@extends('layouts.app')
+
+@section('content')
+<div class="container">
+    <h1>Create Late Fee</h1>
+
+    <form action="{{ route('late-fees.store') }}" method="POST">
+        @csrf
+        @include('dashboard.late_fees.form')
+        <button type="submit" class="btn btn-success mt-3">Create</button>
+    </form>
+</div>
+@endsection

@@ -29,17 +29,16 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', function () {
-    return redirect('/dashboard');
-});
+    if (auth()->user()->hasRole('Admin')) {
+        return redirect('/dashboard');
+    } else {
+        return redirect('/entry-search');
+    }
+})->middleware('auth');
 
 Route::get('/dashboard', [EntryStatementController::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');
 
-// Route::get('/dashboard', function () {
-//     return view('dashboard');
-// })->middleware(['auth', 'verified'])->name('dashboard');
-
 Route::middleware('auth')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
@@ -56,15 +55,28 @@ Route::resource('roles', RoleController::class);
 Route::resource('users', UserController::class);
 Route::get('user-create', [UserController::class, 'create_user']);
 
+Route::get('/barcode/{code}', function ($code) {
+    $generator = new \Picqer\Barcode\BarcodeGeneratorPNG();
+    return response($generator->getBarcode($code, $generator::TYPE_CODE_128))
+        ->header('Content-type', 'image/png');
+});
 
 Route::middleware(['auth'])
     ->group(function () {
+        Route::get('/profile/edit', [UserController::class, 'editProfile'])->name('profile.edit');
+        Route::post('/profile/update-password', [UserController::class, 'updatePassword'])->name('profile.update_password');
+        Route::get('/entry-search', [EntryStatementController::class, 'entrySearch'])->name('entrySearch');
+        Route::get('/complete-enrty', [EntryStatementController::class, 'CompleteEnrty'])->name('CompleteEnrty');
+        Route::get('/complete-exit', [EntryStatementController::class, 'CompleteExit'])->name('CompleteExit');
+        Route::get('/entry-search-show', [EntryStatementController::class, 'entrySearch_show'])->name('entrySearch.show');
         Route::get('/user/{user}/logs', [UserLogController::class, 'userLogs'])->name('user.logs');
-        Route::resource('/entry_statements', EntryStatementController::class);
         Route::get('/entry-statements/{entry}/logs', [EntryStatementLogController::class, 'showLogs'])->name('entry.logs');
         Route::post('/entry-statements/checkout/{id}', [EntryStatementController::class, 'checkout'])->name('entry_statements.checkout');
         Route::post('/finance-exit/checkout/{id}', [EntryStatementController::class, 'FinanceExit'])->name('entry_statements.FinanceExit');
+        Route::post('/finance-entry/checkout/{id}', [EntryStatementController::class, 'FinanceEntry'])->name('entry_statements.FinanceEntry');
         Route::post('/entry-statements/{entry}/add-violation', [EntryStatementController::class, 'addViolation'])->name('entry_statements.addviolation');
+        Route::post('/entry-statements/{entry}/add-time', [EntryStatementController::class, 'addTime'])->name('entry_statements.addTime');
+        Route::resource('/entry_statements', EntryStatementController::class);
         Route::resource('/exit-statements', ExitStatementController::class);
         Route::resource('/violations', ViolationController::class);
         Route::resource('/late-fees', LateFeeController::class);

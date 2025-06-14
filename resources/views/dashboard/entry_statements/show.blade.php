@@ -1,102 +1,124 @@
 @extends('layouts.app')
 
 @section('content')
-    @php
-        use Carbon\Carbon;
-        $createdAt = Carbon::parse($entry_statement->created_at);
-        $weeks = $entry_statement->stay_duration;
-        $allowedStay = $createdAt->copy()->addDays(($weeks * 7));
-        $today = Carbon::now();
+@php
+    use Picqer\Barcode\BarcodeGeneratorSVG;
 
-        $delayDays = $today->gt($allowedStay) ? $today->diffInDays($allowedStay) : 0;
+    $generator = new BarcodeGeneratorSVG();
+    $barcode = $generator->getBarcode($entry_statement->serial_number, $generator::TYPE_CODE_128);
+@endphp
 
-        $penalty = 0;
-        $penaltyPerWeek = 0;
-        $penaltyWeeks = ceil($delayDays / 7);
-
-        if ($delayDays > 0) {
-            $carType = $entry_statement->car_type;
-
-            if (in_array($carType, ['سيارات غير المذكورة', 'دراجات نارية'])) {
-                $penaltyPerWeek = 110;
-            } elseif ($carType == 'شاحنات وباصات خليجية') {
-                $penaltyPerWeek = 50;
-            }
-
-            $penalty = $penaltyPerWeek * $penaltyWeeks;
-        }
-    @endphp
-    @php
-        $exit_fee = 5;
-        $violations_total = $entry_statement->violations->sum('fee');
-        $total_dollar = $exit_fee + $penalty + $violations_total; 
-    @endphp
     <div class="container">
         @if (auth()->user()->hasRole('Admin') || auth()->user()->hasRole('Finance'))
-            <div class="card shadow rounded-4 border-0">
-                <div class="card-body p-4 bg-light">
+            @if ($entry_statement->completeFinanceEntry && !$entry_statement->completeFinanceExit)
+                <div class="card shadow rounded-4 border-0">
+                    <div class="card-body p-4 bg-light">
+                        <h3 class="text-center text-primary fw-bolder mb-1" style="font-size: 1.8rem;">
+                            رسوم الخروج
+                        </h3>
+                        @if ($violations_total)
+                            <button type="button" class="btn btn-sm btn-primary mb-1" data-bs-toggle="modal"
+                                data-bs-target="#ShowViolationsModal">
+                                عرض المخالفات
+                            </button>
+                        @endif
+                        <ul class="list-unstyled mb-1" style="font-size: 1.2rem;">
+                            <li class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="text-dark fw-semibold">رسم الخروج:</span>
+                                <span class="fw-bolder text-black fs-4">${{ number_format($exit_fee, 2) }}</span>
+                            </li>
+                            <li class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="text-dark fw-semibold">غرامة التأخير:</span>
+                                <span class="fw-bolder fs-5 {{ $penalty > 0 ? 'text-danger' : 'text-success' }}">
+                                    {{ $penalty > 0 ? number_format($penalty, 2) . ' دولار' : 'لا توجد غرامة' }}
+                                </span>
+                            </li>
+                            <li class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="text-dark fw-semibold">رسوم المخالفات:</span>
+                                <span class="fw-bolder fs-5 {{ $violations_total > 0 ? 'text-danger' : 'text-success' }}">
+                                    {{ $violations_total > 0 ? number_format($violations_total, 2) . ' دولار' : 'لا توجد مخالفات' }}
+                                </span>
+                            </li>
+                        </ul>
 
-                    <h3 class="text-center text-primary fw-bolder mb-1" style="font-size: 1.8rem;">
-                        💳 تفاصيل الفاتورة
-                    </h3>
-                    @if ($violations_total)
-                        <button type="button" class="btn btn-sm btn-primary mb-1" data-bs-toggle="modal" data-bs-target="#ShowViolationsModal">
-                            عرض المخالفات
-                        </button>
-                    @endif
-                    <ul class="list-unstyled mb-1" style="font-size: 1.2rem;">
-                        <li class="d-flex justify-content-between align-items-center mb-1">
-                            <span class="text-dark fw-semibold">رسم الخروج:</span>
-                            <span class="fw-bolder text-black fs-4">${{ number_format($exit_fee, 2) }}</span>
-                        </li>
-                        <li class="d-flex justify-content-between align-items-center mb-1">
-                            <span class="text-dark fw-semibold">غرامة التأخير:</span>
-                            <span class="fw-bolder fs-5 {{ $penalty > 0 ? 'text-danger' : 'text-success' }}">
-                                {{ $penalty > 0 ? number_format($penalty, 2) . ' دولار' : 'لا توجد غرامة' }}
-                            </span>
-                        </li>
-                        <li class="d-flex justify-content-between align-items-center mb-1">
-                            <span class="text-dark fw-semibold">رسوم المخالفات:</span>
-                            <span class="fw-bolder fs-5 {{ $violations_total > 0 ? 'text-danger' : 'text-success' }}">
-                                {{ $violations_total > 0 ? number_format($violations_total, 2) . ' دولار' : 'لا توجد مخالفات' }}
-                            </span>
-                        </li>
-                    </ul>
+                        <div class="border-top pt-1 d-flex justify-content-between align-items-center">
+                            <span class="fw-bold text-primary fs-5">📦 <strong>المجموع الكلي:</strong></span>
+                            <span class="fw-bolder text-success fs-3">{{ number_format($total_exit_dollar, 2) }} دولار</span>
+                        </div>
+                    </div>
 
-                    <div class="border-top pt-1 d-flex justify-content-between align-items-center">
-                        <span class="fw-bold text-primary fs-5">📦 <strong>المجموع الكلي:</strong></span>
-                        <span class="fw-bolder text-success fs-3">{{ number_format($total_dollar, 2) }} دولار</span>
+                    <div class="card-footer bg-white text-center">
+                        <form action="{{ route('entry_statements.FinanceExit', $entry_statement->id) }}" method="POST">
+                            @csrf
+                            <input type="hidden" name="total_exit_dollar" value="{{ $total_exit_dollar }}">
+                            <button type="submit" class="btn btn-success w-100 fw-bold py-1 rounded-pill">
+                                ✅ تأكيد الدفع
+                            </button>
+                        </form>
                     </div>
                 </div>
+            @elseif (!$entry_statement->completeFinanceEntry)
+                <div class="card shadow rounded-4 border-0">
+                    <div class="card-body p-4 bg-light">
+                        <h3 class="text-center text-primary fw-bolder mb-1" style="font-size: 1.8rem;">
+                            رسوم الدخول
+                        </h3>
+                        @if ($violations_total)
+                            <button type="button" class="btn btn-sm btn-primary mb-1" data-bs-toggle="modal"
+                                data-bs-target="#ShowViolationsModal">
+                                عرض المخالفات
+                            </button>
+                        @endif
+                        <ul class="list-unstyled mb-1" style="font-size: 1.2rem;">
+                            <li class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="text-dark fw-semibold">رسم الدخول:</span>
+                                <span class="fw-bolder text-black fs-4">${{ number_format($entry_fee, 2) }}</span>
+                            </li>
+                            <li class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="text-dark fw-semibold">رسوم المخالفات:</span>
+                                <span class="fw-bolder fs-5 {{ $violations_total > 0 ? 'text-danger' : 'text-success' }}">
+                                    {{ $violations_total > 0 ? number_format($violations_total, 2) . ' دولار' : 'لا توجد مخالفات' }}
+                                </span>
+                            </li>
+                        </ul>
 
-                <div class="card-footer bg-white text-center">
-                    <form action="{{ route('entry_statements.FinanceExit', $entry_statement->id) }}" method="POST">
-                        @csrf
-                        <input type="hidden" name="total_dollar" value="{{ $total_dollar }}">
-                        <button type="submit" class="btn btn-success w-100 fw-bold py-1 rounded-pill">
-                            ✅ تأكيد الدفع
-                        </button>
-                    </form>
+                        <div class="border-top pt-1 d-flex justify-content-between align-items-center">
+                            <span class="fw-bold text-primary fs-5">📦 <strong>المجموع الكلي:</strong></span>
+                            <span class="fw-bolder text-success fs-3">{{ number_format($total_entry_dollar, 2) }} دولار</span>
+                        </div>
+                    </div>
+
+                    <div class="card-footer bg-white text-center">
+                        <form action="{{ route('entry_statements.FinanceEntry', $entry_statement->id) }}" method="POST">
+                            @csrf
+                            <input type="hidden" name="total_entry_dollar" value="{{ $total_entry_dollar }}">
+                            <button type="submit" class="btn btn-success w-100 fw-bold py-1 rounded-pill">
+                                ✅ تأكيد الدفع
+                            </button>
+                        </form>
+                    </div>
                 </div>
-            </div>
+            @endif
         @endif
         @if (auth()->user()->hasRole('Admin') || auth()->user()->hasRole('Customs'))
             <div class="card shadow-lg rounded">
                 <div class="card-body text-end">
-                    @if (!$entry_statement->is_checked_out)
+                    @if (!$entry_statement->is_checked_out || !$entry_statement->completeFinanceEntry)
                         @if (auth()->user()->hasRole('Admin') || auth()->user()->hasRole('Customs'))
-                            @if ($entry_statement->completeFinanceExit)
-                                <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#checkoutModal">
-                                    تسجيل الخروج لهذه السيارة
-                                </button>
-                            @else
-                                <button class="btn btn-danger" disabled>
-                                    لم يتم دفع الرسوم
+                            @if ($entry_statement->completeFinanceEntry == true)
+                                @if($entry_statement->completeFinanceExit)
+                                    <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#checkoutModal">
+                                        تسجيل الخروج لهذه السيارة
+                                    </button>
+                                @else
+                                    <button class="btn btn-danger" disabled>
+                                        لم يتم دفع الرسوم
+                                    </button>
+                                @endif
+                                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#timeModal">
+                                    تمديد مدة البقاء
                                 </button>
                             @endif
-                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#timeModal">
-                                تمديد مدة البقاء
-                            </button>
                         @endif
                     @endif
                     @if (auth()->user()->hasRole('Admin') || auth()->user()->hasRole('Customs'))
@@ -116,9 +138,25 @@
         <div class="card shadow-lg rounded">
             <div class="card-header" style="background-color: #3c8dbc;">
                 <h4 class="mb-0 text-white">تفاصيل حركة الدخول</h4>
-                <a href="{{ route('entry_statements.index') }}" class="mb-0 btn btn-outline-light">
-                    <i class="bi bi-arrow-left-circle"></i> رجوع
-                </a>
+                <div>
+                    <button class="mb-0 btn btn-success" onclick="printCard()">
+                        <i class="bi bi-printer"></i> طباعة
+                    </button>
+                    @if (!auth()->user()->hasRole('Finance'))
+                    <a href="{{ route('entry_statements.create') }}" class="mb-0 btn btn-outline-light">
+                        <i class="bi bi-arrow-left-circle"></i> تسجيل حركة جديدة
+                    </a>
+                    @endif
+                    @if (auth()->user()->hasRole('Admin'))
+                        <a href="{{ route('entry_statements.index') }}" class="mb-0 btn btn-outline-light">
+                            <i class="bi bi-arrow-left-circle"></i> رجوع
+                        </a>
+                    @else
+                        <a href="{{ route('entrySearch') }}" class="mb-0 btn btn-outline-light">
+                            <i class="bi bi-arrow-left-circle"></i> رجوع
+                        </a>
+                    @endif
+                </div>
             </div>
             <div class="card-body">
                 <table class="table table-bordered" id="entryTable">
@@ -160,8 +198,15 @@
                         <td>{{ $entry_statement->borderCrossing->name }}</td>
                     </tr>
                     <tr>
-                        <th class="bg-light">رسم البقاء</th>
-                        <td>{{ number_format($entry_statement->stay_fee, 2) }} ل.س</td>
+                        <th class="bg-light">رسم الدخول</th>
+                        <td>
+                            {{ number_format($entry_statement->stay_fee, 2) }} $ 
+                            @if ($entry_statement->completeFinanceEntry)
+                                <span style="color: green; font-size: smaller;">تم الدفع</span>
+                            @else
+                                <span style="color: red; font-size: smaller;">لم يتم الدفع</span>
+                            @endif
+                        </td>
                     </tr>
                     <tr>
                         <th class="bg-light">الرقم التسلسلي</th>
@@ -174,7 +219,7 @@
                         </tr>
                         <tr>
                             <th class="bg-light">رسم الخروج</th>
-                            <td>{{ number_format($entry_statement->exit_fee, 2) }} ل.س</td>
+                            <td>{{ number_format($exit_fee, 2) }} $</td>
                         </tr>
                         <tr>
                             <th class="bg-light">الخروج</th>
@@ -237,26 +282,27 @@
                 <div class="modal-body">
                     <h2>تم دفع رسوم الخروج</h2>
                 </div>
-                @if (auth()->user()->hasRole('Admin'))
-                    <div class="col-md-6 mb-3" id="sub_car_type_wrapper">
-                        <label class="form-label" for="border_crossing_id">الخروج من معبر:</label>
-                        <select id="border_crossing_id" name="exit_border_crossing_id" class="form-control" required>
-                            <option value="" disabled selected>اختر المعبر</option>
-                            @foreach($borderCrossings as $crossing)
-                                <option value="{{ $crossing->id }}" {{ old('border_crossing_id') == $crossing->id ? 'selected' : '' }}>
-                                    {{ $crossing->name }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-                @endif
+
                 <div class="modal-footer justify-content-between">
                     <form action="{{ route('entry_statements.checkout', $entry_statement->id) }}" method="POST">
                         @csrf
-                        <input type="hidden" name="total_dollar" value="{{ $total_dollar }}">
+                        @if (auth()->user()->hasRole('Admin'))
+                            <div class="col-md-12 mb-3" id="sub_car_type_wrapper">
+                                <label class="form-label" for="border_crossing_id">الخروج من معبر:</label>
+                                <select id="border_crossing_id" name="exit_border_crossing_id" class="form-control" required>
+                                    <option value="" disabled selected>اختر المعبر</option>
+                                    @foreach($borderCrossings as $crossing)
+                                        <option value="{{ $crossing->id }}" {{ old('border_crossing_id') == $crossing->id ? 'selected' : '' }}>
+                                            {{ $crossing->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        @endif
+                        <input type="hidden" name="total_dollar" value="{{ $total_exit_dollar }}">
                         <button type="submit" class="btn btn-success">تأكيد الخروج</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
                     </form>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
                 </div>
             </div>
         </div>
@@ -308,12 +354,12 @@
                     <h5 class="modal-title" id="timeModalLabel">تمديد</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <form action="{{ route('entry_statements.addviolation', $entry_statement->id) }}" method="POST">
+                <form action="{{ route('entry_statements.addTime', $entry_statement->id) }}" method="POST">
                     @csrf
                     <div class="modal-body">
                         <div class="mb-3">
                             <label for="violation_id" class="form-label">اختر فترة التمديد</label>
-                            <select name="violation_id" id="violation_id" class="form-select" required>
+                            <select name="add_week" id="violation_id" class="form-select" required>
                                 <option value="">اختر فترة التمديد</option>
                                 <option value="4">شهر - 50$</option>
                                 <option value="12">ثلاث أشهر 200$</option>
@@ -340,30 +386,6 @@
                     @if ($entry_statement->violations->isEmpty())
                         <p class="text-center text-danger">لا توجد مخالفات مرتبطة بهذه الحركة.</p>
                     @else
-                        @php
-        $createdAt = Carbon::parse($entry_statement->created_at);
-        $weeks = $entry_statement->stay_duration;
-        $allowedStay = $createdAt->copy()->addDays(($weeks * 7));
-        $today = Carbon::now();
-
-        $delayDays = $today->gt($allowedStay) ? $today->diffInDays($allowedStay) : 0;
-
-        $penalty = 0;
-        $penaltyPerWeek = 0;
-        $penaltyWeeks = ceil($delayDays / 7);
-
-        if ($delayDays > 0) {
-            $carType = $entry_statement->car_type;
-
-            if (in_array($carType, ['سيارات غير المذكورة', 'دراجات نارية'])) {
-                $penaltyPerWeek = 110;
-            } elseif ($carType == 'شاحنات وباصات خليجية') {
-                $penaltyPerWeek = 50;
-            }
-
-            $penalty = $penaltyPerWeek * $penaltyWeeks;
-        }
-    @endphp
                         <table class="table table-bordered">
                             <thead>
                                 <tr>
@@ -371,6 +393,7 @@
                                     <th>عنوان المخالفة</th>
                                     <th>قيمة الغرامة ($)</th>
                                     <th>تاريخ الإضافة</th>
+                                    <th></th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -380,6 +403,15 @@
                                         <td>{{ $violation->title }}</td>
                                         <td>{{ number_format($violation->fee, 2) }}</td>
                                         <td>{{ $violation->created_at->format('Y-m-d H:i') }}</td>
+                                        @if ($violation->pivot->isCompleteFinance)
+                                            <td>
+                                                <span style="color: green;">تم الدفع</span>
+                                            </td>
+                                        @else
+                                            <td>
+                                                <span style="color: red;">لم يتم الدفع</span>
+                                            </td>
+                                        @endif
                                     </tr>
                                 @endforeach
                             </tbody>
@@ -392,6 +424,51 @@
             </div>
         </div>
     </div>
+    <div id="printCard" class="d-none">
+    <div style="width: 350px; padding: 20px; border: 1px solid #000; font-family: Arial, sans-serif;">
+        <h3 class="text-center text-primary">بطاقة الخروج</h3>
+        <p><strong>اسم السائق:</strong> {{ $entry_statement->driver_name }}</p>
+        <p><strong>رقم السيارة:</strong> {{ $entry_statement->car_number }}</p>
+        <p><strong>نوع السيارة:</strong> {{ $entry_statement->car_type }}</p>
+        <p><strong>مدة البقاء:</strong> 
+            @php
+                $weeks = $entry_statement->stay_duration;
+                $months = floor($weeks / 4);
+                $remainingWeeks = $weeks % 4;
+            @endphp
+
+            @if ($weeks >= 4)
+                {{ $months }} شهر{{ $months > 1 ? 'اً' : '' }}
+                @if ($remainingWeeks > 0)
+                    و{{ $remainingWeeks }} أسبوع{{ $remainingWeeks > 1 ? 'اً' : '' }}
+                @endif
+            @elseif($weeks == 0)
+                غير محدودة
+            @else
+                {{ $weeks }} أسبوع{{ $weeks > 1 ? 'اً' : '' }}
+            @endif
+        </p>
+        <p><strong>المجموع الكلي:</strong> {{ number_format($total_exit_dollar ?? $total_entry_dollar, 2) }} دولار</p>
+        <p class="text-center mt-3">✅ تم الدفع</p>
+        <p><strong>الرقم التسلسلي:</strong> {{ $entry_statement->serial_number }}</p>
+<div class="text-center mt-2">
+    {!! QrCode::size(100)->generate($entry_statement->serial_number) !!}
+</div>
+    </div>
+</div>
+<script>
+    function printCard() {
+        var printContents = document.getElementById('printCard').innerHTML;
+        var originalContents = document.body.innerHTML;
+
+        document.body.innerHTML = printContents;
+
+        window.print();
+
+        document.body.innerHTML = originalContents;
+        location.reload();
+    }
+</script>
 @endsection
 <style>
     #entryTable {

@@ -17,6 +17,25 @@ class UserController extends Controller
         return view('users.index', compact('users'));
     }
 
+    public function editProfile()
+    {
+        $user = auth()->user();
+        return view('users.edit_profile', compact('user'));
+    }
+
+    public function updatePassword(Request $request)
+    {
+        $request->validate([
+            'password' => 'required|confirmed|min:6',
+        ]);
+
+        $user = auth()->user();
+        $user->password = Hash::make($request->password);
+        $user->save();
+
+        return redirect()->back()->with('success', 'تم تحديث كلمة المرور بنجاح.');
+    }
+
 
     public function create()
     {

@@ -99,7 +99,7 @@
 
 <!-- BEGIN: Body-->
 
-<body class="vertical-layout vertical-menu-modern  navbar-floating footer-static  " data-open="click"
+<body class="vertical-layout vertical-menu-modern  navbar-floating footer-static  menu-expanded" data-open="click"
     data-menu="vertical-menu-modern" data-col="">
 
     <!-- BEGIN: Header-->
@@ -131,13 +131,11 @@
                                 class="avatar-status-online"></span></span>
                     </a>
                     <div class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdown-user">
-                        <a class="dropdown-item" href="{{ 'profile.edit' }}"
+                        <a class="dropdown-item" href="{{ route('profile.edit') }}"
                             style="font-family: 'Cairo', sans-serif;"><i class="me-50" data-feather="user"></i>
                             العلومات الشخصية</a>
-                        <!-- <a class="dropdown-item" href="auth-login-cover.html"><i class="me-50" data-feather="power"></i> Logout</a> -->
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
-
                             <x-responsive-nav-link :href="route('logout')" onclick="event.preventDefault();
                                                 this.closest('form').submit();"
                                 style="font-family: 'Cairo', sans-serif;">
@@ -168,17 +166,29 @@
                         </span>
                         <h2 class="brand-text" style="color: #fff;">معبر نصيب الحدودي</h2>
                     </a></li>
+                <li class="nav-item nav-toggle"><a class="nav-link modern-nav-toggle pe-0" data-bs-toggle="collapse"><i
+                            class="d-block d-xl-none text-primary toggle-icon font-medium-4" data-feather="x"></i><i
+                            class="d-none d-xl-block collapse-toggle-icon font-medium-4  text-primary"
+                            data-feather="disc" data-ticon="disc"></i></a></li>
             </ul>
         </div>
         <div class="shadow-bottom"></div>
         <div class="main-menu-content">
             <ul class="navigation navigation-main">
                 <li class="nav-item">
-                    <a class="d-flex align-items-center" href="{{ route('dashboard') }}">
+                    <a class="d-flex align-items-center" href="{{ route('entrySearch') }}">
                         <i class="fas fa-exchange-alt me-1"></i>
-                        <span>حركات الدخول والخروج</span>
+                        <span>بحث عن حركة</span>
                     </a>
                 </li>
+                @if (auth()->user()->hasRole('Admin'))
+                    <li class="nav-item">
+                        <a class="d-flex align-items-center" href="{{ route('dashboard') }}">
+                            <i class="fas fa-exchange-alt me-1"></i>
+                            <span>حركات الدخول والخروج</span>
+                        </a>
+                    </li>
+                @endif
                 @if (auth()->user()->hasRole('Customs') || auth()->user()->hasRole('Admin'))
                     <li class="nav-item">
                         <a class="d-flex align-items-center" href="{{ route('entry_statements.create') }}">
@@ -187,30 +197,38 @@
                         </a>
                     </li>
                 @endif
-                <li class="nav-item">
-                    <a class="d-flex align-items-center" href="{{ route('violations.index') }}">
-                        <i class="fas fa-exclamation-triangle me-1"></i>
-                        <span>المخالفات</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="d-flex align-items-center" href="{{ route('border_crossing.index') }}">
-                        <i class="fas fa-exclamation-triangle me-1"></i>
-                        <span>المعابر</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="d-flex align-items-center" href="{{ route('users.index') }}">
-                        <i class="fas fa-users me-1"></i>
-                        <span>المستخدمين</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="d-flex align-items-center" href="{{ route('roles.index') }}">
-                        <i class="fas fa-user-shield me-1"></i>
-                        <span>الصلاحيات</span>
-                    </a>
-                </li>
+                @if (auth()->user()->hasRole('Admin'))
+                    <li class="nav-item">
+                        <a class="d-flex align-items-center" href="{{ route('violations.index') }}">
+                            <i class="fas fa-exclamation-triangle me-1"></i>
+                            <span>المخالفات</span>
+                        </a>
+                    </li>
+                @endif
+                @if (auth()->user()->hasRole('Admin'))
+                    <li class="nav-item">
+                        <a class="d-flex align-items-center" href="{{ route('border_crossing.index') }}">
+                            <i class="fas fa-exclamation-triangle me-1"></i>
+                            <span>المعابر</span>
+                        </a>
+                    </li>
+                @endif
+                @if (auth()->user()->hasRole('Admin'))
+                    <li class="nav-item">
+                        <a class="d-flex align-items-center" href="{{ route('users.index') }}">
+                            <i class="fas fa-users me-1"></i>
+                            <span>المستخدمين</span>
+                        </a>
+                    </li>
+                @endif
+                @if (auth()->user()->hasRole('Admin'))
+                    <li class="nav-item">
+                        <a class="d-flex align-items-center" href="{{ route('roles.index') }}">
+                            <i class="fas fa-user-shield me-1"></i>
+                            <span>الصلاحيات</span>
+                        </a>
+                    </li>
+                @endif
             </ul>
         </div>
     </div>
@@ -292,6 +310,10 @@
     </script>
 
     <script>
+        document.querySelector('.modern-nav-toggle').addEventListener('click', function () {
+            document.body.classList.toggle('menu-collapsed');
+        });
+
         document.addEventListener("DOMContentLoaded", function () {
             // الحصول على مسار الصفحة الحالي
             var currentPath = window.location.pathname;

@@ -17,6 +17,7 @@ class EntryStatement extends Model
         'stay_fee',
         'serial_number',
         'is_checked_out',
+        'is_checked_in',
         'checked_out_date',
         'exit_fee',
         'border_crossing_id',
@@ -24,13 +25,17 @@ class EntryStatement extends Model
         'car_nationality',
         'car_brand',
         'completeFinanceExit',
+        'completeFinanceEntry',
     ];
 
     // EntryStatement.php
     public function violations()
     {
-        return $this->belongsToMany(Violation::class)->withTimestamps();
+        return $this->belongsToMany(Violation::class, 'entry_statement_violation')
+            ->withPivot('isCompleteFinance');
     }
+
+
 
     public function borderCrossing()
     {

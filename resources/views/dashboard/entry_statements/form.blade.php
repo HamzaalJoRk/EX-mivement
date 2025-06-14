@@ -9,18 +9,9 @@
         </select>
     </div>
 
-    <div class="col-md-6 mb-3 d-none" id="sub_car_type_wrapper">
-        <label for="sub_car_type" class="form-label">تفاصيل نوع السيارة</label>
-        <select name="sub_car_type" id="sub_car_type" class="form-control">
-            <option value="">-- اختر تفصيل النوع --</option>
-            @foreach($subCarTypes['سيارات سورية او اردنية او لبنانية'] as $sub)
-                <option value="{{ $sub }}">{{ $sub }}</option>
-            @endforeach
-        </select>
-    </div>
 
     @if (auth()->user()->hasRole('Admin'))
-        <div class="col-md-6 mb-3" id="sub_car_type_wrapper">
+        <div class="col-md-6 mb-3" id="border">
             <label class="form-label" for="border_crossing_id">المعبر الحدودي:</label>
             <select id="border_crossing_id" name="border_crossing_id" class="form-control" required>
                 <option value="" disabled selected>اختر المعبر</option>
@@ -76,8 +67,10 @@
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const carTypeSelect = document.getElementById('car_type');
-            const subCarTypeWrapper = document.getElementById('sub_car_type_wrapper');
+            const stayDurationWrapper = document.getElementById('stay_duration_wrapper');
             const stayDurationSelect = document.getElementById('stay_duration');
+
+            const hiddenTypes = ['سيارات سورية', 'سيارات لبنانية', 'سيارات أردنية'];
 
             const defaultDurations = [
                 { value: '4', text: 'شهر - 50$' },
@@ -98,60 +91,26 @@
                 });
             }
 
+            function toggleStayDurationVisibility(type) {
+                if (hiddenTypes.includes(type)) {
+                    stayDurationWrapper.style.display = 'none';
+                    stayDurationSelect.innerHTML = ''; // Clear options
+                } else {
+                    stayDurationWrapper.style.display = 'block';
+                    if (type === 'شاحنات وباصات خليجية') {
+                        updateStayDurations(gulfTruckDurations);
+                    } else {
+                        updateStayDurations(defaultDurations);
+                    }
+                }
+            }
+
             carTypeSelect.addEventListener('change', function () {
-                const selectedType = this.value;
-                const stayDurationWrapper = document.getElementById('stay_duration_wrapper');
-
-                if (selectedType === 'سيارات سورية او اردنية او لبنانية') {
-                    subCarTypeWrapper.classList.remove('d-none');
-                    stayDurationWrapper.classList.add('d-none');
-                    stayDurationSelect.value = '';
-                } else {
-                    subCarTypeWrapper.classList.add('d-none');
-                    document.getElementById('sub_car_type').value = '';
-                    stayDurationWrapper.classList.remove('d-none');
-                }
-
-                if (selectedType === 'سيارات سورية او اردنية او لبنانية') {
-                    subCarTypeWrapper.classList.remove('d-none');
-                } else {
-                    subCarTypeWrapper.classList.add('d-none');
-                    document.getElementById('sub_car_type').value = '';
-                }
-
-                if (selectedType === 'شاحنات وباصات خليجية') {
-                    updateStayDurations(gulfTruckDurations);
-                } else {
-                    updateStayDurations(defaultDurations);
-                }
+                toggleStayDurationVisibility(this.value);
             });
+
+            // Trigger on page load if value exists
+            toggleStayDurationVisibility(carTypeSelect.value);
         });
     </script>
 @endsection
-
-
-
-<!-- <div class="col-md-6 mb-2">
-        <label>رسم البقاء</label>
-        <input type="number" step="0.01" name="stay_fee" class="form-control"
-            value="{{ old('stay_fee', $entry_statement->stay_fee ?? '') }}">
-        @error('stay_fee') <small class="text-danger">{{ $message }}</small> @enderror
-    </div> -->
-
-<!-- <div class="col-md-6 mb-2">
-        <label>سجل خروج؟</label>
-        <select name="is_checked_out" class="form-control">
-            <option value="1" {{ old('is_checked_out', $entry_statement->is_checked_out ?? '') == 1 ? 'selected' : '' }}>
-                نعم</option>
-            <option value="0" {{ old('is_checked_out', $entry_statement->is_checked_out ?? '') == 0 ? 'selected' : '' }}>
-                لا</option>
-        </select>
-        @error('is_checked_out') <small class="text-danger">{{ $message }}</small> @enderror
-    </div> -->
-
-<!-- <div class="col-md-6 mb-2">
-        <label>رسم الخروج</label>
-        <input type="number" step="0.01" name="exit_fee" class="form-control"
-            value="{{ old('exit_fee', $entry_statement->exit_fee ?? '') }}">
-        @error('exit_fee') <small class="text-danger">{{ $message }}</small> @enderror
-    </div> -->

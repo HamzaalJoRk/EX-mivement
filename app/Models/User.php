@@ -29,8 +29,14 @@ class User extends Authenticatable
 
     public function borderCrossing()
     {
-        return $this->belongsTo(BorderCrossing::class,'border_crossing_id');
+        return $this->belongsTo(BorderCrossing::class, 'border_crossing_id');
     }
+
+    public function financeBox()
+    {
+        return $this->hasOne(FinanceBox::class);
+    }
+
 
     /**
      * The attributes that should be hidden for serialization.

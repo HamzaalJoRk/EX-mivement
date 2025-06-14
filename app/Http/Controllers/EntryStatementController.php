@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Helpers\EntryStatementLogHelper;
+use App\Helpers\FinanceHelper;
 use App\Helpers\UserLogHelper;
 use App\Http\Requests\EntryStatementRequest;
 use App\Models\BorderCrossing;
@@ -92,6 +93,12 @@ class EntryStatementController extends Controller
             $entry->violations()->updateExistingPivot($violation->id, ['isCompleteFinance' => true]);
         }
 
+        FinanceHelper::logTransaction(
+            'دفع رسوم خروج للحركة ' . $entry->serial_number,
+            'دفع رسوم خروج',
+            $entry->exit_fee
+        );
+
         EntryStatementLogHelper::log($entry->id, 'دفع رسوم', 'تم دفع الرسوم وهي: ' . $entry->exit_fee . '$' . ' وبرقم تسلسلي: ' . $entry->serial_number);
         UserLogHelper::log('دفع رسوم', 'رقم الطلب: ' . $entry->serial_number);
         return redirect()->back()->with('success', 'تم دفع المستحقات بنجاح.');
@@ -139,7 +146,7 @@ class EntryStatementController extends Controller
     public function FinanceEntry(Request $request, $id)
     {
         $entry = EntryStatement::findOrFail($id);
-        $entry->exit_fee = $request->input('total_entry_dollar');
+        $entry->stay_fee = $request->input('total_entry_dollar');
         $entry->completeFinanceEntry = true;
         $entry->save();
 
@@ -148,7 +155,11 @@ class EntryStatementController extends Controller
             $violation->pivot->save();
         }
 
-
+        FinanceHelper::logTransaction(
+            'دفع رسوم دخول للحركة ' . $entry->serial_number,
+            'دفع رسوم دخول',
+            $entry->stay_fee
+        );
         EntryStatementLogHelper::log($entry->id, 'دفع رسوم', 'تم دفع رسوم الدخول وهي: ' . $entry->exit_fee . '$' . ' وبرقم تسلسلي: ' . $entry->serial_number);
         UserLogHelper::log('دفع رسوم', 'رقم الطلب: ' . $entry->serial_number);
         return redirect()->route('entrySearch')->with('success', 'تم دفع المستحقات بنجاح.');

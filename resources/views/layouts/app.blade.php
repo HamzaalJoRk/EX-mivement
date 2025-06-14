@@ -177,18 +177,36 @@
             <ul class="navigation navigation-main">
                 <li class="nav-item">
                     <a class="d-flex align-items-center" href="{{ route('entrySearch') }}">
-                        <i class="fas fa-exchange-alt me-1"></i>
+                        <i class="fas fa-search me-1"></i>
                         <span>بحث عن حركة</span>
                     </a>
                 </li>
+
+                @if (auth()->user()->hasRole('Finance'))
+                    <li class="nav-item">
+                        <a class="d-flex align-items-center" href="{{ route('finance.transactions.index') }}">
+                            <i class="fas fa-cash-register me-1"></i>
+                            <span>الصندوق المالي</span>
+                        </a>
+                    </li>
+                @elseif (auth()->user()->hasRole('Admin'))
+                    <li class="nav-item">
+                        <a class="d-flex align-items-center" href="{{ route('finance.boxes.index') }}">
+                            <i class="fas fa-box-open me-1"></i>
+                            <span>الصندوق المالي</span>
+                        </a>
+                    </li>
+                @endif
+
                 @if (auth()->user()->hasRole('Admin'))
                     <li class="nav-item">
                         <a class="d-flex align-items-center" href="{{ route('dashboard') }}">
-                            <i class="fas fa-exchange-alt me-1"></i>
+                            <i class="fas fa-random me-1"></i>
                             <span>حركات الدخول والخروج</span>
                         </a>
                     </li>
                 @endif
+
                 @if (auth()->user()->hasRole('Customs') || auth()->user()->hasRole('Admin'))
                     <li class="nav-item">
                         <a class="d-flex align-items-center" href="{{ route('entry_statements.create') }}">
@@ -197,22 +215,25 @@
                         </a>
                     </li>
                 @endif
+
                 @if (auth()->user()->hasRole('Admin'))
                     <li class="nav-item">
                         <a class="d-flex align-items-center" href="{{ route('violations.index') }}">
-                            <i class="fas fa-exclamation-triangle me-1"></i>
+                            <i class="fas fa-gavel me-1"></i>
                             <span>المخالفات</span>
                         </a>
                     </li>
                 @endif
+
                 @if (auth()->user()->hasRole('Admin'))
                     <li class="nav-item">
                         <a class="d-flex align-items-center" href="{{ route('border_crossing.index') }}">
-                            <i class="fas fa-exclamation-triangle me-1"></i>
+                            <i class="fas fa-border-style me-1"></i>
                             <span>المعابر</span>
                         </a>
                     </li>
                 @endif
+
                 @if (auth()->user()->hasRole('Admin'))
                     <li class="nav-item">
                         <a class="d-flex align-items-center" href="{{ route('users.index') }}">
@@ -221,6 +242,7 @@
                         </a>
                     </li>
                 @endif
+
                 @if (auth()->user()->hasRole('Admin'))
                     <li class="nav-item">
                         <a class="d-flex align-items-center" href="{{ route('roles.index') }}">
@@ -230,6 +252,7 @@
                     </li>
                 @endif
             </ul>
+
         </div>
     </div>
     <!-- END: Main Menu-->

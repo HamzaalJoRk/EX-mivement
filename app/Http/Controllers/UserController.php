@@ -3,12 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\BorderCrossing;
+use App\Models\FinanceBox;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Hash;
-
 class UserController extends Controller
 {
     public function index(Request $request)
@@ -61,28 +61,39 @@ class UserController extends Controller
     }
 
 
-    public function store(Request $request)
-    {
-        $this->validate($request, [
-            'name' => 'required',
-            'email' => 'required|email|unique:users,email',
-            'password' => 'sometimes|nullable|confirmed',
-        ]);
 
-        $input = $request->all();
-        if (!empty($input['password'])) {
-            $input['password'] = Hash::make($input['password']);
-        } else {
-            // If the password field is empty, remove it from the input
-            unset($input['password']);
-        }
 
-        $user = User::create($input);
-        $user->assignRole($request->input('roles'));
+public function store(Request $request)
+{
+    $this->validate($request, [
+        'name' => 'required',
+        'email' => 'required|email|unique:users,email',
+        'password' => 'sometimes|nullable|confirmed',
+    ]);
 
-        return redirect()->route('users.index')
-            ->with('success', 'User created successfully');
+    $input = $request->all();
+
+    if (!empty($input['password'])) {
+        $input['password'] = Hash::make($input['password']);
+    } else {
+        unset($input['password']);
     }
+
+    $user = User::create($input);
+
+    $user->assignRole($request->input('roles'));
+
+    if ($user->hasRole('Finance')) {
+        FinanceBox::create([
+            'name' => 'صندوق مالي لـ ' . $user->name,
+            'user_id' => $user->id,
+        ]);
+    }
+
+    return redirect()->route('users.index')
+        ->with('success', 'تم إنشاء المستخدم بنجاح');
+}
+
 
     public function show($id)
     {
@@ -137,6 +148,7 @@ class UserController extends Controller
     public function destroy(User $user)
     {
         if (!auth()->user()->can('delete-users')) {
+
             abort(403, 'Unauthorized');
         }
         $user->delete();

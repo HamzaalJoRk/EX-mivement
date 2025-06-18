@@ -21,15 +21,39 @@
                 </div>
             </div>
         </form>
-
-
-
-        <div class="card text-white bg-success mb-4" style="max-width: 400px; margin: auto;">
+        <div class="card text-white bg-success mb-1" style="max-width: 400px; margin: auto;">
             <div class="card-body text-center">
                 <h5 class="card-title">مجموع المبلغ المستلم</h5>
-                <p class="card-text display-6 fw-bold">{{ number_format($total, 2) }} ل.س</p>
+                <p class="card-text display-6 fw-bold">{{ number_format($total, 2) }} $</p>
             </div>
         </div>
+        <div class="row text-center justify-content-center mb-1">
+            <div class="col-md-4">
+                <div class="card bg-light mb-1 border-success">
+                    <div class="card-body">
+                        <h5 class="card-title text-success">مجموع الرسوم</h5>
+                        <p class="card-text fw-bold">{{ number_format($totalFees, 2) }} $</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card bg-light mb-1 border-warning">
+                    <div class="card-body">
+                        <h5 class="card-title text-warning">مجموع الغرامات</h5>
+                        <p class="card-text fw-bold">{{ number_format($totalPenalties + $totalViolations, 2) }} $</p>
+                    </div>
+                </div>
+            </div>
+            <!-- <div class="col-md-4">
+                    <div class="card bg-light mb-1 border-danger">
+                        <div class="card-body">
+                            <h5 class="card-title text-danger">مجموع المخالفات</h5>
+                            <p class="card-text fw-bold">{{ number_format($totalViolations, 2) }} $</p>
+                        </div>
+                    </div>
+                </div> -->
+        </div>
+
 
         @if ($transactions->isEmpty())
             <p class="text-center text-muted fs-5">لا توجد عمليات في هذا اليوم.</p>
@@ -42,6 +66,7 @@
                             <th>العملية لأجل</th>
                             <th>المبلغ</th>
                             <th>التاريخ والوقت</th>
+                            <th>اجراء</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -49,9 +74,28 @@
                             <tr>
                                 <td>{{ $t->description }}</td>
                                 <td>{{ $t->operation_for }}</td>
-                                <td class="text-success fw-semibold">{{ number_format($t->amount, 2) }} ل.س</td>
+                                <td class="text-success fw-semibold">{{ number_format($t->amount, 2) }} $</td>
                                 <td>{{ $t->created_at->format('Y-m-d H:i') }}</td>
+                                <td>
+                                    <button data-bs-toggle="modal" class="btn btn-sm btn-info"
+                                        data-bs-target="#detailModal{{ $t->id }}">تفاصيل</button>
+                                </td>
                             </tr>
+                            <div class="modal fade" id="detailModal{{ $t->id }}">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">تفاصيل الدفعة</h5>
+                                        </div>
+                                        <div class="modal-body">
+                                            @php $d = $t->detail; @endphp
+                                            <p><strong>الرسوم</strong> {{ number_format($d->fee, 2) }} $</p>
+                                            <p><strong>غرامات:</strong> {{ number_format($d->penalty, 2) }} $</p>
+                                            <p><strong>مخالفات:</strong> {{ number_format($d->violations_total, 2) }} $</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         @endforeach
                     </tbody>
                 </table>

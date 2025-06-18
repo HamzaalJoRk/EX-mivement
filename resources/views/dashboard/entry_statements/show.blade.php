@@ -28,6 +28,10 @@
                                 <span class="fw-bolder text-black fs-4">${{ number_format($exit_fee, 2) }}</span>
                             </li>
                             <li class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="text-dark fw-semibold">رسم اضافي:</span>
+                                <span class="fw-bolder text-black fs-4">${{ number_format($additional_fees_total, 2) }}</span>
+                            </li>
+                            <li class="d-flex justify-content-between align-items-center mb-1">
                                 <span class="text-dark fw-semibold">غرامة التأخير:</span>
                                 <span class="fw-bolder fs-5 {{ $penalty > 0 ? 'text-danger' : 'text-success' }}">
                                     {{ $penalty > 0 ? number_format($penalty, 2) . ' دولار' : 'لا توجد غرامة' }}
@@ -50,6 +54,10 @@
                     <div class="card-footer bg-white text-center">
                         <form action="{{ route('entry_statements.FinanceExit', $entry_statement->id) }}" method="POST">
                             @csrf
+                            <input type="hidden" name="exit_fee" value="{{ $exit_fee }}">
+                            <input type="hidden" name="penalty" value="{{ $penalty }}">
+                            <input type="hidden" name="violations_total" value="{{ $violations_total }}">
+                            <input type="hidden" name="additional_fees_total" value="{{ $additional_fees_total }}">
                             <input type="hidden" name="total_exit_dollar" value="{{ $total_exit_dollar }}">
                             <button type="submit" class="btn btn-success w-100 fw-bold py-1 rounded-pill">
                                 ✅ تأكيد الدفع
@@ -69,6 +77,10 @@
                                 عرض المخالفات
                             </button>
                         @endif
+                        <li class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="text-dark fw-semibold">رسم اضافي:</span>
+                            <span class="fw-bolder text-black fs-4">${{ number_format($additional_fees_total, 2) }}</span>
+                        </li>
                         <ul class="list-unstyled mb-1" style="font-size: 1.2rem;">
                             <li class="d-flex justify-content-between align-items-center mb-1">
                                 <span class="text-dark fw-semibold">رسم الدخول:</span>
@@ -91,10 +103,18 @@
                     <div class="card-footer bg-white text-center">
                         <form action="{{ route('entry_statements.FinanceEntry', $entry_statement->id) }}" method="POST">
                             @csrf
+                            <input type="hidden" name="entry_fee" value="{{ $entry_fee }}">
+                            <input type="hidden" name="violations_total" value="{{ $violations_total }}">
                             <input type="hidden" name="total_entry_dollar" value="{{ $total_entry_dollar }}">
+                            @if (auth()->user()->hasRole('Finance'))
                             <button type="submit" class="btn btn-success w-100 fw-bold py-1 rounded-pill">
                                 ✅ تأكيد الدفع
                             </button>
+                            @else
+                            <button type="submit" class="btn btn-success w-100 fw-bold py-1 rounded-pill" disabled>
+                                ✅ تأكيد الدفع
+                            </button>
+                            @endif
                         </form>
                     </div>
                 </div>
@@ -128,6 +148,12 @@
                     @endif
                     <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#ShowViolationsModal">
                         عرض المخالفات
+                    </button>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addFeeModal">
+                        إضافة ترسيم
+                    </button>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#showFeeModal">
+                        عرض الترسيمات
                     </button>
                     <a href="{{ route('entry.logs', $entry_statement->id) }}" class="btn btn-info">
                         سجل التحركات
@@ -272,6 +298,119 @@
         </div>
     </div>
 
+    <div class="modal fade" id="addFeeModal" tabindex="-1">
+        <div class="modal-dialog">
+            <form action="{{ route('additional_fees.store', $entry_statement->id) }}" method="POST" class="modal-content">
+                @csrf
+                <div class="modal-header">
+                    <h5 class="modal-title">إضافة ترسيم إضافي</h5>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-2">
+                        <label>عنوان الرسوم</label>
+                        <input type="text" name="title" class="form-control" required>
+                    </div>
+                    <div class="mb-2">
+                        <label>المبلغ</label>
+                        <input type="number" name="fee" step="0.01" class="form-control" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-success">إضافة</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal fade" id="showFeeModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content" style="font-weight: bold;">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="ShowViolationsModalLabel">الرسوم الإضافية (الترسيم)</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="إغلاق"></button>
+                </div>
+                <div class="modal-body">
+                    @if ($entry_statement->additionalFees->isEmpty())
+                        <p class="text-center text-danger">لا توجد رسوم اضافية مرتبطة بهذه الحركة.</p>
+                    @else
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>العنوان</th>
+                                    <th>القيمة</th>
+                                    <th>تم التسديد؟</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($additional_fees as $index =>  $fee)
+                                    <tr>
+                                        <td>{{ $index + 1 }}</td>
+                                        <td>{{ $fee->title }}</td>
+                                        <td>{{ number_format($fee->fee, 2) }} $</td>
+                                        @if ($fee->isCompleteFinance)
+                                            <td>
+                                                <span style="color: green;">تم الدفع</span>
+                                            </td>
+                                        @else
+                                            <td>
+                                                <span style="color: red;">لم يتم الدفع</span>
+                                            </td>
+                                        @endif
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    @endif
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إغلاق</button>
+                </div>
+            </div>
+        </div>
+        <!-- <div class="modal-dialog">
+            @if($additional_fees->count() > 0)
+                <div class="card mt-3">
+                    <div class="modal-header">
+                    <h5 class="modal-title" id="ShowViolationsModalLabel">الرسوم الإضافية (الترسيم)</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="إغلاق"></button>
+                </div>
+                    <div class="card-body">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>العنوان</th>
+                                    <th>القيمة</th>
+                                    <th>تم التسديد؟</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($additional_fees as $fee)
+                                    <tr>
+                                        <td>{{ $fee->title }}</td>
+                                        <td>{{ number_format($fee->fee, 2) }} $</td>
+                                        @if ($fee->isCompleteFinance)
+                                            <td>
+                                                <span style="color: green;">تم الدفع</span>
+                                            </td>
+                                        @else
+                                            <td>
+                                                <span style="color: red;">لم يتم الدفع</span>
+                                            </td>
+                                        @endif
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إغلاق</button>
+                    </div>
+                </div>
+            @endif
+        </div> -->
+    </div>
+
     <div class="modal fade" id="checkoutModal" tabindex="-1" aria-labelledby="checkoutModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content" style="font-weight: bold;">
@@ -337,16 +476,6 @@
             </div>
         </div>
     </div>
-    @if(session('success'))
-        <script>
-            Swal.fire({
-                icon: 'success',
-                title: 'تم بنجاح',
-                text: '{{ session('success') }}',
-                confirmButtonText: 'حسناً'
-            });
-        </script>
-    @endif
     <div class="modal fade" id="timeModal" tabindex="-1" aria-labelledby="timeModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content" style="font-weight: bold;">
@@ -476,3 +605,19 @@
         font-weight: bold;
     }
 </style>
+
+
+@section('scripts')
+    @if(session('success'))
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'تم بنجاح',
+                    text: '{{ session('success') }}',
+                    confirmButtonText: 'حسناً'
+                });
+            });
+        </script>
+    @endif
+@endsection

@@ -8,6 +8,7 @@ use App\Helpers\UserLogHelper;
 use App\Http\Requests\EntryStatementRequest;
 use App\Models\BorderCrossing;
 use App\Models\EntryStatement;
+use App\Models\FinanceTransactionDetail;
 use App\Models\Violation;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -85,7 +86,7 @@ class EntryStatementController extends Controller
     public function FinanceExit(Request $request, $id)
     {
         $entry = EntryStatement::findOrFail($id);
-        $entry->exit_fee = $request->input('total_dollar');
+        $entry->exit_fee = $request->input('total_exit_dollar');
         $entry->completeFinanceExit = true;
         $entry->save();
 
@@ -93,16 +94,35 @@ class EntryStatementController extends Controller
             $entry->violations()->updateExistingPivot($violation->id, ['isCompleteFinance' => true]);
         }
 
-        FinanceHelper::logTransaction(
+        foreach ($entry->additionalFees as $fee) {
+            $fee->isCompleteFinance = true;
+            $fee->save();
+        }
+
+        $transaction = FinanceHelper::logTransaction(
             'دفع رسوم خروج للحركة ' . $entry->serial_number,
             'دفع رسوم خروج',
             $entry->exit_fee
         );
 
-        EntryStatementLogHelper::log($entry->id, 'دفع رسوم', 'تم دفع الرسوم وهي: ' . $entry->exit_fee . '$' . ' وبرقم تسلسلي: ' . $entry->serial_number);
+        FinanceTransactionDetail::create([
+            'finance_transaction_id' => $transaction->id,
+            'fee' => $request->exit_fee + $request->additional_fees_total,
+            'penalty' => $request->penalty,
+            'violations_total' => $request->violations_total,
+        ]);
+
+        EntryStatementLogHelper::log(
+            $entry->id,
+            'دفع رسوم',
+            'تم دفع الرسوم وهي: ' . $entry->exit_fee . '$' . ' وبرقم تسلسلي: ' . $entry->serial_number
+        );
+
         UserLogHelper::log('دفع رسوم', 'رقم الطلب: ' . $entry->serial_number);
+
         return redirect()->back()->with('success', 'تم دفع المستحقات بنجاح.');
     }
+
 
 
     public function CompleteExit(Request $request)
@@ -155,11 +175,24 @@ class EntryStatementController extends Controller
             $violation->pivot->save();
         }
 
-        FinanceHelper::logTransaction(
+        foreach ($entry->additionalFees as $fee) {
+            $fee->isCompleteFinance = true;
+            $fee->save();
+        }
+
+        $transaction = FinanceHelper::logTransaction(
             'دفع رسوم دخول للحركة ' . $entry->serial_number,
             'دفع رسوم دخول',
             $entry->stay_fee
         );
+
+        FinanceTransactionDetail::create([
+            'finance_transaction_id' => $transaction->id,
+            'fee' => $request->entry_fee,
+            'penalty' => 0,
+            'violations_total' => $request->violations_total,
+        ]);
+
         EntryStatementLogHelper::log($entry->id, 'دفع رسوم', 'تم دفع رسوم الدخول وهي: ' . $entry->exit_fee . '$' . ' وبرقم تسلسلي: ' . $entry->serial_number);
         UserLogHelper::log('دفع رسوم', 'رقم الطلب: ' . $entry->serial_number);
         return redirect()->route('entrySearch')->with('success', 'تم دفع المستحقات بنجاح.');
@@ -314,14 +347,21 @@ class EntryStatementController extends Controller
             }
         }
 
+        $additional_fees = $entry_statement->additionalFees;
+
+        $additional_fees_total = $entry_statement->additionalFees()
+            ->where('isCompleteFinance', false)
+            ->sum('fee');
+
         $penalty = $penaltyPerWeek * $penaltyWeeks;
 
         $exit_fee = 5;
+
         $violations_total = $unpaidViolations->sum('fee');
-        $total_exit_dollar = $exit_fee + $penalty + $violations_total;
+        $total_exit_dollar = $exit_fee + $penalty + $violations_total + $additional_fees_total;
 
         $entry_fee = $entry_statement->stay_fee;
-        $total_entry_dollar = $entry_statement->stay_fee + $violations_total;
+        $total_entry_dollar = $entry_statement->stay_fee + $violations_total + $additional_fees_total;
 
         $violations = Violation::all();
         $borderCrossings = BorderCrossing::all();
@@ -341,6 +381,8 @@ class EntryStatementController extends Controller
             'unpaidViolations',
             'total_exit_dollar',
             'violations',
+            'additional_fees',
+            'additional_fees_total',
             'total_entry_dollar'
         ));
     }

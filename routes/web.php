@@ -3,6 +3,7 @@
 use App\Http\Controllers\BorderCrossingController;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\EntranceFeeController;
+use App\Http\Controllers\EntryStatementAdditionalFeeController;
 use App\Http\Controllers\EntryStatementController;
 use App\Http\Controllers\EntryStatementLogController;
 use App\Http\Controllers\ExitStatementController;
@@ -65,6 +66,11 @@ Route::get('/barcode/{code}', function ($code) {
 
 Route::middleware(['auth'])
     ->group(function () {
+        Route::prefix('entry-statements/{entry}')->group(function () {
+            Route::post('/additional-fees', [EntryStatementAdditionalFeeController::class, 'store'])->name('additional_fees.store');
+            Route::patch('/additional-fees/{fee}', [EntryStatementAdditionalFeeController::class, 'update'])->name('additional_fees.update');
+            Route::delete('/additional-fees/{fee}', [EntryStatementAdditionalFeeController::class, 'destroy'])->name('additional_fees.destroy');
+        });
         Route::get('/finance/transactions', [FinanceTransactionController::class, 'index'])->name('finance.transactions.index');
         Route::get('/finance-boxes', [FinanceBoxController::class, 'index'])->name('finance.boxes.index');
         Route::get('/finance/boxes/{box}/transactions', [FinanceTransactionController::class, 'boxTransactions'])->name('finance.box.transactions');

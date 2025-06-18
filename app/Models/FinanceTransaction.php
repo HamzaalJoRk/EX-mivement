@@ -17,4 +17,10 @@ class FinanceTransaction extends Model
     {
         return $this->belongsTo(FinanceBox::class);
     }
+
+    public function detail()
+    {
+        return $this->hasOne(FinanceTransactionDetail::class, 'finance_transaction_id');
+    }
+
 }

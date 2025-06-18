@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\FinanceBox;
+use App\Models\FinanceTransactionDetail;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -54,7 +55,7 @@ class FinanceTransactionController extends Controller
         $endDate = $request->input('end_date');
 
         $user = User::findOrFail($box->user_id);
-        
+
         $query = $user->financeBox->transactions()->orderBy('created_at', 'desc');
 
         if ($startDate && $endDate) {
@@ -71,23 +72,23 @@ class FinanceTransactionController extends Controller
         $transactions = $query->get();
         $total = $transactions->sum('amount');
 
-        return view('dashboard.finance.transactions.index', compact('transactions', 'total', 'startDate', 'endDate'));
+        $transactionIds = $transactions->pluck('id');
+
+        $details = FinanceTransactionDetail::whereIn('finance_transaction_id', $transactionIds)->get();
+
+        $totalFees = $details->sum('fee');
+        $totalPenalties = $details->sum('penalty');
+        $totalViolations = $details->sum('violations_total');
+
+        return view('dashboard.finance.transactions.index', compact(
+            'transactions',
+            'total',
+            'startDate',
+            'endDate',
+            'totalFees',
+            'totalPenalties',
+            'totalViolations'
+        ));
     }
-    // public function boxTransactions(Request $request, FinanceBox $box)
-    // {
-    //     $fromDate = $request->input('from_date');
-    //     $toDate = $request->input('to_date');
-
-    //     $transactionsQuery = $box->transactions()->orderBy('created_at', 'desc');
-
-    //     if ($fromDate && $toDate) {
-    //         $transactionsQuery->whereBetween('created_at', [$fromDate, $toDate]);
-    //     }
-
-    //     $transactions = $transactionsQuery->get();
-    //     $total = $transactions->sum('amount');
-
-    //     return view('dashboard.finance.transactions.box', compact('box', 'transactions', 'total', 'fromDate', 'toDate'));
-    // }
 
 }

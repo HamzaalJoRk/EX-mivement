@@ -36,6 +36,11 @@ class EntryStatement extends Model
     }
 
 
+    public function additionalFees()
+    {
+        return $this->hasMany(EntryStatementAdditionalFee::class);
+    }
+
 
     public function borderCrossing()
     {

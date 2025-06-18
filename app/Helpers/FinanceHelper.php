@@ -16,23 +16,25 @@ class FinanceHelper
      * @param float $amount المبلغ
      * @return bool
      */
-    public static function logTransaction(string $description, string $operationFor, float $amount): bool
+    /**
+     * @return FinanceTransaction|null
+     */
+    public static function logTransaction(string $description, string $operationFor, float $amount): ?FinanceTransaction
     {
         $user = Auth::user();
 
         if (!$user || !$user->financeBox) {
-            return false;
+            return null;
         }
 
-        FinanceTransaction::create([
+        return FinanceTransaction::create([
             'finance_box_id' => $user->financeBox->id,
             'amount' => $amount,
             'description' => $description,
             'operation_for' => $operationFor,
         ]);
-
-        return true;
     }
+
 
     /**
      * إحضار رصيد المستخدم الحالي من العمليات (مجموع المبالغ)

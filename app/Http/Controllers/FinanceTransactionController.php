@@ -46,7 +46,18 @@ class FinanceTransactionController extends Controller
         $transactions = $query->get();
         $total = $transactions->sum('amount');
 
-        return view('dashboard.finance.transactions.index', compact('transactions', 'total', 'startDate', 'endDate'));
+        $transactionIds = $transactions->pluck('id');
+
+        $details = FinanceTransactionDetail::whereIn('finance_transaction_id', $transactionIds)->get();
+
+        $totalFees = $details->sum('fee');
+        $totalPenalties = $details->sum('penalty');
+        $totalViolations = $details->sum('violations_total');
+
+        $transactions = $query->get();
+        $total = $transactions->sum('amount');
+
+        return view('dashboard.finance.transactions.index', compact('transactions', 'total', 'totalFees', 'startDate', 'endDate'));
     }
 
     public function boxTransactions(Request $request, FinanceBox $box)
@@ -83,6 +94,7 @@ class FinanceTransactionController extends Controller
         return view('dashboard.finance.transactions.index', compact(
             'transactions',
             'total',
+            'box',
             'startDate',
             'endDate',
             'totalFees',

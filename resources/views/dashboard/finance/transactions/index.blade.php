@@ -4,7 +4,7 @@
     <div class="container">
         <h2 class="mb-2 text-center">سجل العمليات المالية</h2>
 
-        <form method="GET" action="{{ route('finance.transactions.index') }}" class="mb-4">
+        <form method="GET" action="{{ route('finance.box.transactions',$box->id) }}" class="mb-4">
             <div class="row justify-content-center align-items-end g-2">
                 <div class="col-md-3">
                     <label for="start_date" class="form-label">تاريخ البداية:</label>
@@ -17,7 +17,7 @@
                 </div>
                 <div class="col-md-2 d-flex gap-2">
                     <button type="submit" class="btn btn-primary w-100">فلترة</button>
-                    <a href="{{ route('finance.transactions.index') }}" class="btn btn-secondary w-100">إلغاء الفلترة</a>
+                    <a href="{{ route('finance.box.transactions',$box->id) }}" class="btn btn-secondary w-100">إلغاء الفلترة</a>
                 </div>
             </div>
         </form>

@@ -21,6 +21,19 @@
             </div>
         </form>
 
+        @foreach ($boxes as $box)
+            @php
+                $total = $boxes->sum('total_amount');
+            @endphp
+        @endforeach
+
+        <div class="card text-white bg-success mb-4" style="max-width: 400px; margin: auto;">
+            <div class="card-body text-center">
+                <h5 class="card-title">مجموع المبلغ المستلم</h5>
+                <p class="card-text display-6 fw-bold">{{ number_format($total, 2) }} ل.س</p>
+            </div>
+        </div>
+
         <div class="table-responsive">
             <table class="table table-bordered table-striped text-center">
                 <thead class="table-dark">

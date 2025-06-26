@@ -107,13 +107,13 @@
                             <input type="hidden" name="violations_total" value="{{ $violations_total }}">
                             <input type="hidden" name="total_entry_dollar" value="{{ $total_entry_dollar }}">
                             @if (auth()->user()->hasRole('Finance'))
-                            <button type="submit" class="btn btn-success w-100 fw-bold py-1 rounded-pill">
-                                ✅ تأكيد الدفع
-                            </button>
+                                <button type="submit" class="btn btn-success w-100 fw-bold py-1 rounded-pill">
+                                    ✅ تأكيد الدفع
+                                </button>
                             @else
-                            <button type="submit" class="btn btn-success w-100 fw-bold py-1 rounded-pill" disabled>
-                                ✅ تأكيد الدفع
-                            </button>
+                                <button type="submit" class="btn btn-success w-100 fw-bold py-1 rounded-pill" disabled>
+                                    ✅ تأكيد الدفع
+                                </button>
                             @endif
                         </form>
                     </div>
@@ -165,9 +165,12 @@
             <div class="card-header" style="background-color: #3c8dbc;">
                 <h4 class="mb-0 text-white">تفاصيل حركة الدخول</h4>
                 <div>
-                    <button class="mb-0 btn btn-success" onclick="printCard()">
+                    <!-- <button class="mb-0 btn btn-success" onclick="printCard()">
                         <i class="bi bi-printer"></i> طباعة
-                    </button>
+                    </button> -->
+                    <a href="{{ route('print.card', $entry_statement->id) }}" target="_blank" class="mb-0 btn btn-success">
+                        <i class="bi bi-printer"></i> طباعة
+                    </a>
                     @if (!auth()->user()->hasRole('Finance'))
                     <a href="{{ route('entry_statements.create') }}" class="mb-0 btn btn-outline-light">
                         <i class="bi bi-arrow-left-circle"></i> تسجيل حركة جديدة

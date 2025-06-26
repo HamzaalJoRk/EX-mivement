@@ -10,6 +10,7 @@ use App\Http\Controllers\ExitStatementController;
 use App\Http\Controllers\FinanceBoxController;
 use App\Http\Controllers\FinanceTransactionController;
 use App\Http\Controllers\LateFeeController;
+use App\Http\Controllers\PrintController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TypeController;
 use App\Http\Controllers\UserController;
@@ -74,7 +75,7 @@ Route::middleware(['auth'])
         Route::get('/finance/transactions', [FinanceTransactionController::class, 'index'])->name('finance.transactions.index');
         Route::get('/finance-boxes', [FinanceBoxController::class, 'index'])->name('finance.boxes.index');
         Route::get('/finance/boxes/{box}/transactions', [FinanceTransactionController::class, 'boxTransactions'])->name('finance.box.transactions');
-
+        Route::get('/print/card/{id}', [PrintController::class, 'printCard'])->name('print.card');
         Route::get('/profile/edit', [UserController::class, 'editProfile'])->name('profile.edit');
         Route::post('/profile/update-password', [UserController::class, 'updatePassword'])->name('profile.update_password');
         Route::get('/entry-search', [EntryStatementController::class, 'entrySearch'])->name('entrySearch');

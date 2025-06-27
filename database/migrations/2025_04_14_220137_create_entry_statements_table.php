@@ -10,23 +10,27 @@ return new class extends Migration {
      */
     public function up()
     {
-        Schema::create('entry_statements', function (Blueprint $table) {
+        Schema::create('financial_receipts', function (Blueprint $table) {
             $table->id();
-            $table->string('car_type');
-            $table->string('car_nationality');
-            $table->string('car_brand');
-            $table->string('driver_name');
-            $table->string('car_number');
-            $table->integer('stay_duration');
-            $table->decimal('stay_fee', 8, 2);
-            $table->string('serial_number');
-            $table->boolean('is_checked_out')->default(0);
-            $table->boolean('completeFinanceExit')->default(0);
-            $table->date('checked_out_date')->nullable();
-            $table->decimal('exit_fee', 8, 2)->nullable();
+
+            $table->unsignedBigInteger('entry_statement_id');
+            $table->foreign('entry_statement_id')->references('id')->on('entry_statements')->onDelete('cascade');
+
+            $table->string('cashier_number');         // رقم الهيكل
+            $table->string('cashier_name');           // اسم الصندوق أو المسؤول
+
+            $table->string('receipt_number');         // رقم الإيصال
+            $table->string('statement_number');       // رقم التصفية
+            $table->string('driver_name');            // اسم السائق
+            $table->string('car_number');             // رقم السيارة
+
+            $table->decimal('fees', 10, 2);           // رسم العبور 
+            $table->decimal('additionalFee', 10, 2);  // الرسوم الإضافية 
+            $table->decimal('violations_total', 10, 2); // مجموع الغرامات
+            $table->decimal('total_amount', 10, 2);   // الإجمالي
+
             $table->timestamps();
         });
-
     }
 
 

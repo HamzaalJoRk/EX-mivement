@@ -121,7 +121,7 @@
             <td>KMFGA17A68C080077</td>
         </tr>
         <tr>
-            <td>رسم الخروج</td>
+            <td>رسم العبور</td>
             <td>10.00</td>
             <td>رسوم إضافية</td>
             <td>50</td>
@@ -131,16 +131,16 @@
             <td colspan="3">50.00</td>
         </tr>
         <tr>
-            <td colspan="1">مجموع الرسوم</td>
+            <td colspan="1">الإجمالي</td>
             <td colspan="3">110.00</td>
         </tr>
     </table>
 
     <div class="amount-box">
-        رقماً: 1100.00
+         الإجمالي رقماً: 1100.00
     </div>
     <div class="amount-box">
-        كتابة: ألف و مائة دولار
+         الإجمالي كتابة: ألف و مائة دولار
     </div>
 
 

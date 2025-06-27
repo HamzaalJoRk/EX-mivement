@@ -9,6 +9,7 @@ use App\Http\Requests\EntryStatementRequest;
 use App\Models\BorderCrossing;
 use App\Models\EntryStatement;
 use App\Models\FinanceTransactionDetail;
+use App\Models\FinancialReceipt;
 use App\Models\Violation;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -124,7 +125,6 @@ class EntryStatementController extends Controller
     }
 
 
-
     public function CompleteExit(Request $request)
     {
         $entry = EntryStatement::where('serial_number', $request->serial_number)->first();
@@ -170,6 +170,25 @@ class EntryStatementController extends Controller
         $entry->completeFinanceEntry = true;
         $entry->save();
 
+        $user = auth()->user();
+
+
+
+        //         protected $fillable = [
+//             'entry_statement_id',
+//             'cashier_number',
+//             'cashier_name',
+//             'receipt_number',
+//             'statement_number',
+//             'driver_name',
+//             'car_number',
+//             'fees',
+//             'additionalFee',
+//             'violations_total',
+//             'total_amount',
+//         ];
+
+
         foreach ($entry->violations as $violation) {
             $violation->pivot->isCompleteFinance = true;
             $violation->pivot->save();
@@ -185,6 +204,15 @@ class EntryStatementController extends Controller
             'دفع رسوم دخول',
             $entry->stay_fee
         );
+
+        $financialReceipt = FinancialReceipt::create([
+            'cashier_number' => $user->financeBox->number,
+            'cashier_name' => $user->name,
+            'statement_number' => $entry->serial_number,
+            'driver_name' => $entry->driver_name,
+            'car_number' => $entry->car_number,
+            'fees' => $entry->car_number,
+        ]);
 
         FinanceTransactionDetail::create([
             'finance_transaction_id' => $transaction->id,

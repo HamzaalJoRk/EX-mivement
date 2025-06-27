@@ -9,7 +9,7 @@ class PrintController extends Controller
 {
     public function printCard($id)
     {
-        // $data = FinancialReceipt::findOrFail($id);
+        $data = FinancialReceipt::findOrFail($id);
         return view('dashboard.entry_statements.FinancialReceiptPrint');
     }
 }

@@ -52,6 +52,12 @@ class EntryStatement extends Model
         return $this->belongsTo(BorderCrossing::class, 'exit_border_crossing_id');
     }
 
+    public function financialReceipts()
+    {
+        return $this->hasMany(FinancialReceipt::class);
+    }
+
+
 
     /**
      * Boot method to generate serial_number automatically

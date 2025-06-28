@@ -15,7 +15,7 @@ return new class extends Migration {
             $table->unsignedBigInteger('finance_transaction_id');
             $table->foreign('finance_transaction_id')->references('id')->on('finance_transactions')->onDelete('cascade');
 
-            $table->string('cashier_number');         // رقم الهيكل
+            $table->string('cashier_number');         // رقم الصندوق
             $table->string('cashier_name');           // اسم الصندوق أو المسؤول
 
             $table->string('receipt_number');         // رقم الإيصال

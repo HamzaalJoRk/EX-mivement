@@ -21,4 +21,26 @@ class FinanceBox extends Model
         return $this->hasMany(FinanceTransaction::class);
     }
 
+    /**
+     * Boot method to generate number automatically
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($entry) {
+            $entry->number = self::generateSerialNumber();
+        });
+    }
+
+    /**
+     * Generate unique serial number
+     */
+    private static function generateSerialNumber()
+    {
+        $latest = self::latest('id')->first();
+        $nextId = $latest ? $latest->id + 1 : 1;
+        return 'NBS-' . str_pad($nextId, 6, '0', STR_PAD_LEFT); // مثال: ENT-000001
+    }
+
 }

@@ -9,7 +9,12 @@ class FinanceTransactionDetail extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['finance_transaction_id', 'fee', 'penalty', 'violations_total'];
+    protected $fillable = [
+        'finance_transaction_id',
+        'fee',
+        'penalty',
+        'violations_total'
+    ];
 
     public function transaction()
     {

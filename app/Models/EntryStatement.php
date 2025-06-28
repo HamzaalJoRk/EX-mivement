@@ -52,11 +52,15 @@ class EntryStatement extends Model
         return $this->belongsTo(BorderCrossing::class, 'exit_border_crossing_id');
     }
 
-    public function financialReceipts()
+    public function financeTransactions()
     {
-        return $this->hasMany(FinancialReceipt::class);
+        return $this->hasMany(FinanceTransaction::class);
     }
 
+    public function entryCard()
+    {
+        return $this->hasOne(EntryCard::class);
+    }
 
 
     /**

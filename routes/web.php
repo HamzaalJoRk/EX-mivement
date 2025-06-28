@@ -3,12 +3,14 @@
 use App\Http\Controllers\BorderCrossingController;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\EntranceFeeController;
+use App\Http\Controllers\EntryCardController;
 use App\Http\Controllers\EntryStatementAdditionalFeeController;
 use App\Http\Controllers\EntryStatementController;
 use App\Http\Controllers\EntryStatementLogController;
 use App\Http\Controllers\ExitStatementController;
 use App\Http\Controllers\FinanceBoxController;
 use App\Http\Controllers\FinanceTransactionController;
+use App\Http\Controllers\FinancialReceiptController;
 use App\Http\Controllers\LateFeeController;
 use App\Http\Controllers\PrintController;
 use App\Http\Controllers\ProfileController;
@@ -72,10 +74,13 @@ Route::middleware(['auth'])
             Route::patch('/additional-fees/{fee}', [EntryStatementAdditionalFeeController::class, 'update'])->name('additional_fees.update');
             Route::delete('/additional-fees/{fee}', [EntryStatementAdditionalFeeController::class, 'destroy'])->name('additional_fees.destroy');
         });
+        Route::get('/entry-cards/{id}/print', [EntryCardController::class, 'print'])->name('entry-cards.print');
         Route::get('/finance/transactions', [FinanceTransactionController::class, 'index'])->name('finance.transactions.index');
         Route::get('/finance-boxes', [FinanceBoxController::class, 'index'])->name('finance.boxes.index');
+        Route::get('/finance-receipts/transactions', [FinancialReceiptController::class, 'index'])->name('finance.receipts.index');
+
         Route::get('/finance/boxes/{box}/transactions', [FinanceTransactionController::class, 'boxTransactions'])->name('finance.box.transactions');
-        Route::get('/print/card/{id}', [PrintController::class, 'printCard'])->name('print.card');
+        Route::get('/print-card/{id}', [PrintController::class, 'printCard'])->name('print.card');
         Route::get('/profile/edit', [UserController::class, 'editProfile'])->name('profile.edit');
         Route::post('/profile/update-password', [UserController::class, 'updatePassword'])->name('profile.update_password');
         Route::get('/entry-search', [EntryStatementController::class, 'entrySearch'])->name('entrySearch');

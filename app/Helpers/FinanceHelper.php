@@ -5,6 +5,7 @@ namespace App\Helpers;
 use App\Models\FinanceBox;
 use App\Models\FinanceTransaction;
 use Illuminate\Support\Facades\Auth;
+use Ramsey\Uuid\Type\Integer;
 
 class FinanceHelper
 {
@@ -19,8 +20,18 @@ class FinanceHelper
     /**
      * @return FinanceTransaction|null
      */
-    public static function logTransaction(string $description, string $operationFor, float $amount): ?FinanceTransaction
-    {
+    public static function logTransaction(
+        int $entry_statement_id,
+        string $description,
+        string $operationFor,
+        float $amount,
+        string $statement_number,
+        string $driver_name,
+        string $car_number,
+        float $fees,
+        float $additionalFee,
+        float $violations_total,
+    ): ?FinanceTransaction {
         $user = Auth::user();
 
         if (!$user || !$user->financeBox) {
@@ -28,10 +39,20 @@ class FinanceHelper
         }
 
         return FinanceTransaction::create([
+            'entry_statement_id' => $entry_statement_id,
             'finance_box_id' => $user->financeBox->id,
             'amount' => $amount,
             'description' => $description,
             'operation_for' => $operationFor,
+            'cashier_number' => $user->financeBox->number,
+            'cashier_name' => $user->name,
+            'statement_number' => $statement_number,
+            'driver_name' => $driver_name,
+            'car_number' => $car_number,
+            'fees' => $fees,
+            'additionalFee' => $additionalFee,
+            'total_amount' => $amount,
+            'violations_total' => $violations_total
         ]);
     }
 

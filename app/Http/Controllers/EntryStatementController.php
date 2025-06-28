@@ -7,6 +7,7 @@ use App\Helpers\FinanceHelper;
 use App\Helpers\UserLogHelper;
 use App\Http\Requests\EntryStatementRequest;
 use App\Models\BorderCrossing;
+use App\Models\EntryCard;
 use App\Models\EntryStatement;
 use App\Models\FinanceTransactionDetail;
 use App\Models\FinancialReceipt;
@@ -101,9 +102,16 @@ class EntryStatementController extends Controller
         }
 
         $transaction = FinanceHelper::logTransaction(
+            $entry->id,
             'دفع رسوم خروج للحركة ' . $entry->serial_number,
             'دفع رسوم خروج',
-            $entry->exit_fee
+            $entry->exit_fee,
+            $entry->serial_number,
+            $entry->driver_name,
+            $entry->car_number,
+            $request->exit_fee,
+            $request->additional_fees_total,
+            $request->violations_total,
         );
 
         FinanceTransactionDetail::create([
@@ -121,7 +129,7 @@ class EntryStatementController extends Controller
 
         UserLogHelper::log('دفع رسوم', 'رقم الطلب: ' . $entry->serial_number);
 
-        return redirect()->back()->with('success', 'تم دفع المستحقات بنجاح.');
+        return redirect()->route('print.card', $transaction->id)->with('success', 'تم دفع المستحقات بنجاح.');
     }
 
 
@@ -165,29 +173,14 @@ class EntryStatementController extends Controller
 
     public function FinanceEntry(Request $request, $id)
     {
+
+        // dd($request->all());
         $entry = EntryStatement::findOrFail($id);
         $entry->stay_fee = $request->input('total_entry_dollar');
         $entry->completeFinanceEntry = true;
         $entry->save();
 
         $user = auth()->user();
-
-
-
-        //         protected $fillable = [
-//             'entry_statement_id',
-//             'cashier_number',
-//             'cashier_name',
-//             'receipt_number',
-//             'statement_number',
-//             'driver_name',
-//             'car_number',
-//             'fees',
-//             'additionalFee',
-//             'violations_total',
-//             'total_amount',
-//         ];
-
 
         foreach ($entry->violations as $violation) {
             $violation->pivot->isCompleteFinance = true;
@@ -200,30 +193,31 @@ class EntryStatementController extends Controller
         }
 
         $transaction = FinanceHelper::logTransaction(
+            $entry->id,
             'دفع رسوم دخول للحركة ' . $entry->serial_number,
             'دفع رسوم دخول',
-            $entry->stay_fee
-        );
+            $entry->stay_fee,
 
-        $financialReceipt = FinancialReceipt::create([
-            'cashier_number' => $user->financeBox->number,
-            'cashier_name' => $user->name,
-            'statement_number' => $entry->serial_number,
-            'driver_name' => $entry->driver_name,
-            'car_number' => $entry->car_number,
-            'fees' => $entry->car_number,
-        ]);
+            $entry->serial_number,
+            $entry->driver_name,
+            $entry->car_number,
+            $request->entry_fee,
+            $request->additional_fees_total,
+            $request->violations_total,
+        );
 
         FinanceTransactionDetail::create([
             'finance_transaction_id' => $transaction->id,
-            'fee' => $request->entry_fee,
+            'fee' => $request->entry_fee + $request->violations_total,
             'penalty' => 0,
             'violations_total' => $request->violations_total,
         ]);
 
+        // {{ route('print.card', $entry->financeTransactions->id) }}
+
         EntryStatementLogHelper::log($entry->id, 'دفع رسوم', 'تم دفع رسوم الدخول وهي: ' . $entry->exit_fee . '$' . ' وبرقم تسلسلي: ' . $entry->serial_number);
         UserLogHelper::log('دفع رسوم', 'رقم الطلب: ' . $entry->serial_number);
-        return redirect()->route('entrySearch')->with('success', 'تم دفع المستحقات بنجاح.');
+        return redirect()->route('print.card', $transaction->id)->with('success', 'تم دفع المستحقات بنجاح.');
     }
 
 
@@ -290,7 +284,6 @@ class EntryStatementController extends Controller
     {
         $validated = $request->validated();
 
-        // dd($validated);
         $car_type = $validated['car_type'];
         $car_number = $validated['car_number'];
 
@@ -301,12 +294,9 @@ class EntryStatementController extends Controller
                 $validated['stay_duration'] = 0;
                 break;
             case 'سيارات غير السورية والاردنية واللبنانية':
-                $validated['stay_fee'] = ($validated['stay_duration'] == 12) ? 200 : 50;
-                break;
             case 'دراجات نارية':
                 $validated['stay_fee'] = ($validated['stay_duration'] == 12) ? 200 : 50;
                 break;
-
             case 'شاحنات وباصات خليجية':
                 $validated['stay_fee'] = 50;
                 break;
@@ -316,10 +306,6 @@ class EntryStatementController extends Controller
                 $validated['stay_duration'] = 0;
                 break;
             case 'سيارات لبنانية':
-                $existing = EntryStatement::where('car_number', $car_number)->first();
-                $validated['stay_fee'] = $existing ? 10 : 15;
-                $validated['stay_duration'] = 0;
-                break;
             case 'سيارات أردنية':
                 $existing = EntryStatement::where('car_number', $car_number)->first();
                 $validated['stay_fee'] = $existing ? 10 : 15;
@@ -327,15 +313,29 @@ class EntryStatementController extends Controller
                 break;
         }
 
+        if ($validated['car_brand'] == null) {
+            $validated['car_brand'] == 'none';
+        }
+
         $entry = EntryStatement::create($validated);
 
+        EntryCard::create([
+            'entry_statement_id' => $entry->id,
+            'owner_name' => $validated['owner_name'] ?? 'اسم غير معروف',
+            'car_number' => $validated['car_number'],
+            'car_type' => $validated['car_type'],
+            'stay_duration' => $validated['stay_duration'] . ' شهر',
+            'entry_date' => now()->toDateString(),
+            'exit_date' => now()->addMonths($validated['stay_duration'] ?? 1)->toDateString(),
+            'qr_code' => null,
+        ]);
+
         EntryStatementLogHelper::log($entry->id, 'إنشاء', 'رقم الطلب: #' . $entry->serial_number);
-
         UserLogHelper::log('انشاء حركة دخول', 'رقم الطلب: ' . $entry->serial_number);
-
 
         return redirect()->route('entry_statements.show', $entry->id)->with('success', 'تمت الإضافة بنجاح.');
     }
+
 
 
 

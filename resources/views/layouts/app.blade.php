@@ -189,11 +189,23 @@
                             <span>الصندوق المالي</span>
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="d-flex align-items-center" href="{{ route('finance.receipts.index') }}">
+                            <i class="fas fa-cash-register me-1"></i>
+                            <span>ايصالات الدفع</span>
+                        </a>
+                    </li>
                 @elseif (auth()->user()->hasRole('Admin'))
                     <li class="nav-item">
                         <a class="d-flex align-items-center" href="{{ route('finance.boxes.index') }}">
                             <i class="fas fa-box-open me-1"></i>
                             <span>الصندوق المالي</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="d-flex align-items-center" href="{{ route('finance.receipts.index') }}">
+                            <i class="fas fa-cash-register me-1"></i>
+                            <span>ايصالات الدفع</span>
                         </a>
                     </li>
                 @endif

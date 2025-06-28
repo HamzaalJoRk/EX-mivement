@@ -24,7 +24,7 @@ class EntryStatementRequest extends FormRequest
             'car_type' => 'required|string|max:255',
             'driver_name' => 'required|string|max:255',
             'car_number' => 'required|string|max:255',
-            'car_brand' => 'required|string|max:255',
+            'car_brand' => 'string|max:255',
             'car_nationality' => 'required|string|max:255',
             'border_crossing_id' => 'required',
             'stay_duration' => 'min:0',

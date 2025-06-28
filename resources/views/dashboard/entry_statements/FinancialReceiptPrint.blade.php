@@ -110,43 +110,41 @@
     <table>
         <tr>
             <td>رقم الإيصال</td>
-            <td>136906</td>
+            <td>{{ $data->receipt_number }}</td>
             <td>رقم التصفية</td>
-            <td>86388</td>
+            <td>{{ $data->statement_number }}</td>
         </tr>
         <tr>
             <td>السائق</td>
-            <td>نافذ منير الضاهر</td>
+            <td>{{ $data->driver_name }}</td>
             <td>رقم السيارة</td>
-            <td>KMFGA17A68C080077</td>
+            <td>{{ $data->car_number }}</td>
         </tr>
         <tr>
             <td>رسم العبور</td>
-            <td>10.00</td>
+            <td>{{ $data->fees }}</td>
             <td>رسوم إضافية</td>
-            <td>50</td>
+            <td>{{ $data->additionalFee }}</td>
         </tr>
         <tr>
             <td colspan="1">مجموع الغرامات</td>
-            <td colspan="3">50.00</td>
+            <td colspan="3">{{ $data->violations_total }}</td>
         </tr>
         <tr>
             <td colspan="1">الإجمالي</td>
-            <td colspan="3">110.00</td>
+            <td colspan="3">{{ $data->total_amount }}</td>
         </tr>
     </table>
 
     <div class="amount-box">
-         الإجمالي رقماً: 1100.00
+         الإجمالي رقماً: {{ $data->total_amount }}
     </div>
     <div class="amount-box">
-         الإجمالي كتابة: ألف و مائة دولار
+         الإجمالي كتابة: {{ $totalInWords }}
     </div>
-
 
     <div class="footer">الصندوق</div>
 
-    
     <script>
         const today = new Date();
         const day = today.getDate();

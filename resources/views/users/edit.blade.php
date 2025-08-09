@@ -1,75 +1,91 @@
 @extends('layouts.app')
 
 @section('content')
-    
-    <form action="{{ route('users.update', $user->id) }}" method="POST">
-    @csrf
-    @method('PATCH') <!-- Use Blade directive to set the HTTP method -->
-    <!-- Validation Errors -->
-    @if ($errors->any())
-                    <div class="mb-4">
-                        <div class="font-medium text-red-600">
-                            {{ __('Whoops! Something went wrong.') }}
-                        </div>
-
-                        <ul class="mt-3 list-disc list-inside text-sm text-red-600">
-                            @foreach ($errors->all() as $error)
-                                <li>{{ $error }}</li>
-                            @endforeach
-                        </ul>
-                    </div>
-                @endif
-                <div class="text-center my-2">
-        @if (session('success'))
-            <div class="font-medium text-green-600">
-                {{ session('success') }}
+    <div class="container mt-1">
+        <div class="card shadow rounded">
+            <div class="card-header text-center font-weight-bold">
+                <h4>تعديل المستخدم: {{ $user->name }}</h4>
             </div>
-        @endif
+
+            <div class="card-body">
+                <form action="{{ route('users.update', $user->id) }}" method="POST">
+                    @csrf
+                    @method('PUT')
+
+                    {{-- رسائل الخطأ --}}
+                    @if ($errors->any())
+                        <div class="alert alert-danger">
+                            <strong>حدث خطأ!</strong>
+                            <ul class="mb-0 mt-2">
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+
+                    {{-- رسائل النجاح --}}
+                    @if (session('success'))
+                        <div class="alert alert-success text-center">
+                            {{ session('success') }}
+                        </div>
+                    @endif
+
+                    <div class="form-group mb-2">
+                        <label class="mb-1" for="name">الاسم:</label>
+                        <input type="text" id="name" name="name" value="{{ old('name', $user->name) }}"
+                               class="form-control" placeholder="Name" required>
+                    </div>
+
+                    <div class="form-group mb-2">
+                        <label class="mb-1" for="email">الايميل:</label>
+                        <input type="email" id="email" name="email" value="{{ old('email', $user->email) }}"
+                               class="form-control" placeholder="Email" required>
+                    </div>
+
+                    <div class="form-group mb-2">
+                        <label class="mb-1" for="password">كلمة المرور (اتركها فارغة إن لم ترد التغيير):</label>
+                        <input type="password" id="password" name="password"
+                               class="form-control" placeholder="Password">
+                    </div>
+
+                    <div class="form-group mb-2">
+                        <label class="mb-1" for="confirm-password">تأكيد كلمة المرور:</label>
+                        <input type="password" id="confirm-password" name="password_confirmation"
+                               class="form-control" placeholder="Confirm Password">
+                    </div>
+
+                    <div class="form-group mb-2">
+                        <label class="mb-1" for="border_crossing_id">المعبر الحدودي:</label>
+                        <select id="border_crossing_id" name="border_crossing_id" class="form-control" required>
+                            <option value="" disabled>اختر المعبر</option>
+                            @foreach($borderCrossings as $crossing)
+                                <option value="{{ $crossing->id }}"
+                                    {{ old('border_crossing_id', $user->border_crossing_id) == $crossing->id ? 'selected' : '' }}>
+                                    {{ $crossing->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="form-group mb-2">
+                        <label class="mb-1" for="roles" class="form-label">الصلاحيات:</label>
+                        <select name="roles[]" id="roles" class="form-control" multiple required>
+                            @foreach ($allRoles as $roleName => $roleLabel)
+                                <option value="{{ $roleName }}"
+                                    {{ in_array($roleName, old('roles', $userRole)) ? 'selected' : '' }}>
+                                    {{ $roleLabel }}
+                                </option>
+                            @endforeach
+                        </select>
+                        <small class="form-text text-muted">اضغط Ctrl لتحديد أكثر من صلاحية</small>
+                    </div>
+
+                    <div class="text-center">
+                        <button type="submit" class="btn btn-primary px-5">تحديث</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
-
-    <div class="grid grid-cols-12 gap-3">
-        <div class="col-span-12 mb-3">
-            <label for="name" class="label-control">الاسم</label>
-            <input type="text" id="name" name="name" value="{{ $user->name }}"
-                   class="form-control"
-                   placeholder="Name" required>
-        </div>
-        <div class="col-span-12 mb-3">
-            <label for="email" class="label-control">الايميل</label>
-            <input type="email" id="email" name="email" value="{{ $user->email }}"
-                   class="form-control"
-                   placeholder="Email" required>
-        </div>
-        <div class="col-span-12 mb-3">
-            <label for="password" class="label-control">كلمة المرور</label>
-            <input type="password" id="password" name="password"
-                   class="form-control"
-                   placeholder="Password">
-        </div>
-        <div class="col-span-12 mb-3">
-            <label for="confirm-password" class="label-control">تأكيد كلمة المرور</label>
-            <input type="password" id="confirm-password" name="confirm-password"
-                   class="form-control"
-                   placeholder="Confirm Password">
-        </div>
-        <div class="col-span-12 mb-3">
-    <label for="roles" class="label-control">الصلاحية:</label>
-    @foreach ($allRoles as $roleName => $roleLabel)
-        <label class="inline-flex items-center mt-2">
-            <input type="checkbox" name="roles[]" value="{{ $roleName }}" {{ in_array($roleName, $userRole) ? 'checked' : '' }}>
-            <span class="ml-2">{{ $roleLabel }}</span>
-        </label>
-    @endforeach
-</div>
-
-        <div class="col-span-12 mb-3 text-center">
-            <button type="submit"
-                    class="btn btn-success">
-                تعديل
-            </button>
-        </div>
-    </div>
-</form>
-
-
 @endsection

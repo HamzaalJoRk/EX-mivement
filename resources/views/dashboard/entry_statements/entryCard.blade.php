@@ -1,91 +1,301 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
+
 <head>
     <meta charset="UTF-8">
-    <title>بطاقة الدخول</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>بطاقة دخول السيارة - الجمارك السورية</title>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         @media print {
             @page {
-                size: A7 portrait;
-                margin: 0;
+                size: A6 landscape;
+                margin: 2mm;
             }
 
             body {
                 margin: 0;
                 -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
             }
         }
 
+        @font-face {
+            font-family: 'TheYearOfTheCamel';
+            src: url('{{ asset('fonts/TheYearofTheCamel-ExtraBold.otf') }}') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
         body {
-            font-family: 'Arial', sans-serif;
+            font-family: 'TheYearOfTheCamel', sans-serif;
             direction: rtl;
-            background-image: url('{{ asset('images/entry_card_bg.jpg') }}');
-            background-size: cover;
-            background-repeat: no-repeat;
-            background-position: center;
-            width: 74mm;
-            height: 105mm;
-            margin: 0;
+            width: 148mm;
+            height: 101mm;
+            background: white;
+            position: relative;
+            border: 1px solid #ccc;
+            overflow: hidden;
+            margin: 0 auto;
+            padding: 0;
+            font-size: 16px;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .header {
+            text-align: center;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            margin-bottom: 15px;
+        }
+
+        .header_bottom {
+            border-bottom: 3px solid #0a4b46ff;
+        }
+
+        .content {
+            padding: 20px 30px;
             position: relative;
         }
 
-        .container {
-            position: absolute;
-            top: 45mm;
-            right: 8mm;
-            font-size: 10pt;
-            color: #000;
+        .info {
+            margin-top: 15px;
         }
 
-        .container p {
-            margin: 3mm 0;
+        .info p {
+            margin-bottom: 5px;
         }
 
         .bold {
             font-weight: bold;
         }
 
-        .qr-container {
-            position: absolute;
-            top: 35mm;
-            left: 5mm;
-        }
-
-        .qr-container img {
-            width: 30mm;
-            height: 30mm;
-        }
-
         .footer {
-            position: absolute;
-            bottom: 4mm;
-            width: 100%;
             text-align: center;
+            font-size: 10px;
             color: red;
-            font-size: 8pt;
+            font-weight: bold;
+        }
+
+        .card-body {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .border-top {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: #8B0000;
+        }
+
+        .border-bottom {
+            position: absolute;
+            bottom: 40px;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: #8B0000;
+        }
+
+        .border-left {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 5px;
+            height: 100%;
+            background: #8B0000;
+        }
+
+        .border-right {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 5px;
+            height: 100%;
+            background: #8B0000;
+        }
+
+        .corner {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #8B0000;
+        }
+
+        .corner-tl {
+            top: 15px;
+            left: 15px;
+            border-right: none;
+            border-bottom: none;
+        }
+
+        .corner-tr {
+            top: 15px;
+            right: 15px;
+            border-left: none;
+            border-bottom: none;
+        }
+
+        .corner-bl {
+            bottom: 55px;
+            left: 15px;
+            border-right: none;
+            border-top: none;
+        }
+
+        .corner-br {
+            bottom: 55px;
+            right: 15px;
+            border-left: none;
+            border-top: none;
+        }
+
+        .print-btn {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: #8B0000;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: 'Arial', sans-serif;
+            font-size: 12px;
+            z-index: 10;
+        }
+
+        .print-btn:hover {
+            background: #A52A2A;
+        }
+
+        .stamp {
+            position: absolute;
+            top: 70px;
+            left: 30px;
+            width: 70px;
+            height: 70px;
+            border: 3px solid #8B0000;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #8B0000;
+            font-weight: bold;
+            font-size: 14px;
+            transform: rotate(-15deg);
+            opacity: 0.7;
+            text-align: center;
+            line-height: 1.3;
         }
     </style>
 </head>
-<body onload="window.print();">
 
-    <div class="container">
-        <p><span class="bold">اسم المالك:</span> {{ $entryCard->owner_name }}</p>
-        <p><span class="bold">رقم السيارة:</span> {{ $entryCard->car_number }}</p>
-        <p><span class="bold">مدة البقاء:</span> {{ $entryCard->stay_duration }}</p>
-        <p><span class="bold">نوع السيارة:</span> {{ $entryCard->car_type }}</p>
-        <p>
-            <span class="bold">تاريخ الدخول:</span> {{ \Carbon\Carbon::parse($entryCard->entry_date)->format('j/n/Y') }}<br>
-            <span class="bold">تاريخ الانتهاء:</span> {{ \Carbon\Carbon::parse($entryCard->exit_date)->format('j/n/Y') }}
-        </p>
+<body onclick="window.print()">
+
+    <div class="content">
+        <div class="header">
+            <h3 style="color: #0a4b46ff">الجمهورية العربية السورية - الجمارك</h3>
+            <img src="{{ asset('/logo.jpg') }}" alt="" width="75">
+        </div>
+        <div class="header_bottom">
+        </div>
+        <div class="card-body">
+            <div class="info">
+                <p><span class="bold">اسم المالك:</span> {{ $entry->driver_name }}</p>
+                <p><span class="bold">رقم السيارة:</span> {{ $entry->car_number }}</p>
+
+                <p><span class="bold">مدة البقاء:</span>
+                    @php
+                        $weeks = $entry->stay_duration;
+                        $months = floor($weeks / 4);
+                        $remainingWeeks = $weeks % 4;
+                    @endphp
+
+                    @if ($weeks >= 4)
+                        {{ $months }} شهر{{ $months > 1 ? 'اً' : '' }}
+                        @if ($remainingWeeks > 0)
+                            و{{ $remainingWeeks }} أسبوع{{ $remainingWeeks > 1 ? 'اً' : '' }}
+                        @endif
+                    @elseif($weeks == 0)
+                        غير محدودة
+                    @else
+                        {{ $weeks }} أسبوع{{ $weeks > 1 ? 'اً' : '' }}
+                    @endif
+                </p>
+                <p><span class="bold">المعبر:</span> {{ $entry->borderCrossing->name }}</p>
+                <p><span class="bold">نوع السيارة:</span>
+                    @if($entry->car_type === 'شاحنات وباصات خليجية')
+                        شحن
+                    @else
+                        سياحي
+                    @endif
+                </p>
+                <p><span class="bold">تاريخ الدخول:</span> {{ $createdAt->format('Y-m-d') }}</p>
+                <p><span class="bold">تاريخ الانتهاء:</span> {{ $allowedStay->format('Y-m-d') }}</p>
+            </div>
+            <div class="qr_imge">
+                {!! QrCode::size(130)->generate($entry->serial_number) !!}
+            </div>
+
+        </div>
+        <div class="footer">
+            <span>
+                غرامة تأخير اسبوع بمبلغ وقدره
+                @if($entry->car_type === 'شاحنات وباصات خليجية')
+                    15$
+                @else
+                    110$
+                @endif
+                (حيث يعامل اليوم معاملة الاسبوع) <br>
+                غرامة ضياع بيان هي 30$
+            </span>
+        </div>
+    </div>
     </div>
 
-    <div class="qr-container">
-        <img src="{{ asset('storage/qrcodes/' . $entryCard->qr_code) }}" alt="QR Code">
-    </div>
+    <script>
+        window.print();
+    </script>
 
-    <div class="footer">
-        الرجاء التقيد بالتعليمات المذكورة في الطرف الخلفي للبطاقة
-    </div>
+    <style>
+        @media print {
+            @page {
+                size: A6 landscape;
+                margin: 2mm;
+            }
 
+            body {
+                margin: 0;
+            }
+
+            .page {
+                page-break-after: always;
+                width: 148mm;
+                height: 101mm;
+            }
+
+            .back {
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                font-size: 16px;
+            }
+        }
+    </style>
 </body>
+
 </html>

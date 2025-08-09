@@ -8,11 +8,11 @@
             <div class="row justify-content-center align-items-end g-2">
                 <div class="col-md-3">
                     <label for="start_date" class="form-label">تاريخ البداية:</label>
-                    <input type="date" name="start_date" value="{{ $startDate ?? '' }}" class="form-control">
+                    <input type="date" id="startDate" name="startDate" value="{{ $startDate }}" class="form-control">
                 </div>
                 <div class="col-md-3">
                     <label for="end_date" class="form-label">تاريخ النهاية:</label>
-                    <input type="date" name="end_date" value="{{ $endDate ?? '' }}" class="form-control">
+                    <input type="date" id="endDate" name="endDate" value="{{ $endDate }}" class="form-control">
                 </div>
                 <div class="col-md-3 d-flex gap-2">
                     <button type="submit" class="btn btn-primary w-100">فلترة</button>
@@ -20,17 +20,20 @@
                 </div>
             </div>
         </form>
-
-        @foreach ($boxes as $box)
+        @forelse ($boxes as $box)
             @php
                 $total = $boxes->sum('total_amount');
             @endphp
-        @endforeach
+        @empty
+            @php
+                $total = 0;
+            @endphp
+        @endforelse
 
         <div class="card text-white bg-success mb-4" style="max-width: 400px; margin: auto;">
             <div class="card-body text-center">
                 <h5 class="card-title">مجموع المبلغ المستلم</h5>
-                <p class="card-text display-6 fw-bold">{{ number_format($total, 2) }} ل.س</p>
+                <p class="card-text display-6 fw-bold">{{ number_format($total, 2) }} $</p>
             </div>
         </div>
 
@@ -52,7 +55,7 @@
                             <td>{{ $index + 1 }}</td>
                             <td>{{ $box->name }}</td>
                             <td>{{ $box->user->name ?? 'غير معروف' }}</td>
-                            <td>{{ $box->filtered_transactions->count() }}</td>
+                            <td>{{ $box->transactions_count }}</td>
                             <td><strong>{{ number_format($box->total_amount, 2) }}</strong></td>
                             <td><a href="{{ route('finance.box.transactions', $box->id) }}" class="btn btn-sm btn-info">
                                     <i class="fas fa-eye"></i> عرض العمليات

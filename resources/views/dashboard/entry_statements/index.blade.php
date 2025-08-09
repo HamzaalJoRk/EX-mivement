@@ -137,7 +137,7 @@
                                 @elseif($entry->stay_duration == 0)
                                     غير محدودة
                                 @else
-                                    شهرين
+                                    ثلاث أشهر
                                 @endif
                             </td>
                             <td>{{ number_format($entry->stay_fee, 2) }}</td>
@@ -306,19 +306,19 @@
             Swal.fire({
                 title: 'إجراء مطلوب',
                 html: `
-                                                        <div>
-                                                            <a href="#" class="btn btn-danger btn-sm"
-                                                                title="عرض">
-                                                                تسجيل خروج
-                                                            </a>
-                                                        </div>
-                                                        <div class="mt-2">
-                                                            <a href="#" class="btn btn-info btn-sm"
-                                                                title="عرض">
-                                                                تمديد فترة البقاء
-                                                            </a>
-                                                        </div>
-                                                    `,
+                                                            <div>
+                                                                <a href="#" class="btn btn-danger btn-sm"
+                                                                    title="عرض">
+                                                                    تسجيل خروج
+                                                                </a>
+                                                            </div>
+                                                            <div class="mt-2">
+                                                                <a href="#" class="btn btn-info btn-sm"
+                                                                    title="عرض">
+                                                                    تمديد فترة البقاء
+                                                                </a>
+                                                            </div>
+                                                        `,
                 showCancelButton: true,
                 confirmButtonText: 'تأكيد',
                 cancelButtonText: 'إلغاء',

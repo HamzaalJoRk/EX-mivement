@@ -17,29 +17,20 @@ use Illuminate\Http\Request;
 
 class EntryStatementController extends Controller
 {
-    /**
-     * Display a listing of the entry statements.
-     */
+
     public function index(Request $request)
     {
-        $startDate = $request->input('startDate');
-        $endDate = $request->input('endDate');
+        $startDate = $request->input('startDate', now()->toDateString());
+        $endDate = $request->input('endDate', now()->toDateString());
 
-        $entries = EntryStatement::query();
+        $entries = EntryStatement::whereBetween('created_at', [
+            $startDate . ' 00:00:00',
+            $endDate . ' 23:59:59'
+        ])->orderBy('created_at', 'desc')->get();
 
-        if ($startDate && $endDate) {
-            $entries->whereBetween('created_at', [$startDate, $endDate]);
-        }
-
-        $entries = $entries->orderBy('created_at', 'desc')->get();
-
-        $today = now()->toDateString();
-
-        $todayStats = EntryStatement::whereDate('created_at', $today);
-
-        $totalEntryFee = $todayStats->sum('stay_fee');
-        $totalExitFee = $todayStats->sum('exit_fee');
-        $entryCount = $todayStats->count();
+        $totalEntryFee = $entries->sum('stay_fee');
+        $totalExitFee = $entries->sum('exit_fee');
+        $entryCount = $entries->count();
 
         return view('dashboard.entry_statements.index', [
             'entries' => $entries,
@@ -50,6 +41,7 @@ class EntryStatementController extends Controller
             'endDate' => $endDate,
         ]);
     }
+
 
     public function entrySearch()
     {
@@ -213,7 +205,6 @@ class EntryStatementController extends Controller
             'violations_total' => $request->violations_total,
         ]);
 
-        // {{ route('print.card', $entry->financeTransactions->id) }}
 
         EntryStatementLogHelper::log($entry->id, 'دفع رسوم', 'تم دفع رسوم الدخول وهي: ' . $entry->exit_fee . '$' . ' وبرقم تسلسلي: ' . $entry->serial_number);
         UserLogHelper::log('دفع رسوم', 'رقم الطلب: ' . $entry->serial_number);
@@ -282,68 +273,136 @@ class EntryStatementController extends Controller
 
     public function store(EntryStatementRequest $request)
     {
-        $validated = $request->validated();
+        try {
+            $validated = $request->validated();
 
-        $car_type = $validated['car_type'];
-        $car_number = $validated['car_number'];
+            $car_type = $validated['car_type'];
+            $car_number = $validated['car_number'];
 
-        switch ($car_type) {
-            case 'سيارات سورية او اردنية او لبنانية':
-                $existing = EntryStatement::where('car_number', $car_number)->first();
-                $validated['stay_fee'] = $existing ? 10 : 15;
-                $validated['stay_duration'] = 0;
-                break;
-            case 'سيارات غير السورية والاردنية واللبنانية':
-            case 'دراجات نارية':
-                $validated['stay_fee'] = ($validated['stay_duration'] == 12) ? 200 : 50;
-                break;
-            case 'شاحنات وباصات خليجية':
-                $validated['stay_fee'] = 50;
-                break;
-            case 'سيارات سورية':
-                $validated['stay_fee'] = 0;
-                $validated['completeFinanceEntry'] = 1;
-                $validated['stay_duration'] = 0;
-                break;
-            case 'سيارات لبنانية':
-            case 'سيارات أردنية':
-                $existing = EntryStatement::where('car_number', $car_number)->first();
-                $validated['stay_fee'] = $existing ? 10 : 15;
-                $validated['stay_duration'] = 0;
-                break;
+            switch ($car_type) {
+                case 'سيارات سورية او اردنية او لبنانية':
+                    $existing = EntryStatement::where('car_number', $car_number)->first();
+                    $validated['stay_fee'] = $existing ? 10 : 15;
+                    $validated['stay_duration'] = 0;
+                    break;
+                case 'سيارات غير السورية والاردنية واللبنانية':
+                case 'دراجات نارية':
+                    $validated['stay_fee'] = ($validated['stay_duration'] == 12) ? 200 : 50;
+                    break;
+                case 'شاحنات وباصات خليجية':
+                    $validated['stay_fee'] = 50;
+                    break;
+                case 'سيارات سورية':
+                    $validated['stay_fee'] = 0;
+                    $validated['completeFinanceEntry'] = 1;
+                    $validated['stay_duration'] = 0;
+                    break;
+                case 'سيارات لبنانية':
+                case 'سيارات أردنية':
+                    $existing = EntryStatement::where('car_number', $car_number)->first();
+                    $validated['stay_fee'] = $existing ? 10 : 15;
+                    $validated['stay_duration'] = 0;
+                    break;
+            }
+
+            if ($validated['car_brand'] == null) {
+                $validated['car_brand'] = 'none'; // تعديل الخطأ هنا كان = بدل ==
+            }
+
+            $entry = EntryStatement::create($validated);
+
+            EntryCard::create([
+                'entry_statement_id' => $entry->id,
+                'owner_name' => $validated['owner_name'] ?? 'اسم غير معروف',
+                'car_number' => $validated['car_number'],
+                'car_type' => $validated['car_type'],
+                'stay_duration' => $validated['stay_duration'] . ' شهر',
+                'entry_date' => now()->toDateString(),
+                'exit_date' => now()->addMonths($validated['stay_duration'] ?? 1)->toDateString(),
+                'qr_code' => null,
+            ]);
+
+            EntryStatementLogHelper::log($entry->id, 'إنشاء', 'رقم الطلب: #' . $entry->serial_number);
+            UserLogHelper::log('انشاء حركة دخول', 'رقم الطلب: ' . $entry->serial_number);
+
+            return redirect()->route('entry_statements.show', $entry->id)->with('success', 'تمت الإضافة بنجاح.');
+
+        } catch (\Exception $e) {
+            \Log::error('فشل في إنشاء حركة دخول', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return redirect()->back()->withInput()->with('error', 'حدث خطأ غير متوقع أثناء الإضافة، يرجى المحاولة لاحقاً.');
         }
-
-        if ($validated['car_brand'] == null) {
-            $validated['car_brand'] == 'none';
-        }
-
-        $entry = EntryStatement::create($validated);
-
-        EntryCard::create([
-            'entry_statement_id' => $entry->id,
-            'owner_name' => $validated['owner_name'] ?? 'اسم غير معروف',
-            'car_number' => $validated['car_number'],
-            'car_type' => $validated['car_type'],
-            'stay_duration' => $validated['stay_duration'] . ' شهر',
-            'entry_date' => now()->toDateString(),
-            'exit_date' => now()->addMonths($validated['stay_duration'] ?? 1)->toDateString(),
-            'qr_code' => null,
-        ]);
-
-        EntryStatementLogHelper::log($entry->id, 'إنشاء', 'رقم الطلب: #' . $entry->serial_number);
-        UserLogHelper::log('انشاء حركة دخول', 'رقم الطلب: ' . $entry->serial_number);
-
-        return redirect()->route('entry_statements.show', $entry->id)->with('success', 'تمت الإضافة بنجاح.');
     }
-
 
 
 
     public function update(EntryStatementRequest $request, EntryStatement $entry_statement)
     {
-        $entry_statement->update($request->validated());
-        return redirect()->route('dashboard')->with('success', 'تم التحديث بنجاح.');
+        try {
+            $validated = $request->validated();
+
+            $car_type = $validated['car_type'];
+            $car_number = $validated['car_number'];
+
+            switch ($car_type) {
+                case 'سيارات سورية او اردنية او لبنانية':
+                    $existing = EntryStatement::where('car_number', $car_number)
+                        ->where('id', '!=', $entry_statement->id)
+                        ->first();
+                    $validated['stay_fee'] = $existing ? 10 : 15;
+                    $validated['stay_duration'] = 0;
+                    break;
+                case 'سيارات غير السورية والاردنية واللبنانية':
+                case 'دراجات نارية':
+                    $validated['stay_fee'] = ($validated['stay_duration'] == 12) ? 200 : 50;
+                    break;
+                case 'شاحنات وباصات خليجية':
+                    $validated['stay_fee'] = 50;
+                    break;
+                case 'سيارات سورية':
+                    $validated['stay_fee'] = 0;
+                    $validated['completeFinanceEntry'] = 1;
+                    $validated['stay_duration'] = 0;
+                    break;
+                case 'سيارات لبنانية':
+                case 'سيارات أردنية':
+                    $existing = EntryStatement::where('car_number', $car_number)
+                        ->where('id', '!=', $entry_statement->id)
+                        ->first();
+                    $validated['stay_fee'] = $existing ? 10 : 15;
+                    $validated['stay_duration'] = 0;
+                    break;
+            }
+
+            if ($validated['car_brand'] == null) {
+                $validated['car_brand'] = 'none';
+            }
+
+            $entry_statement->update($validated);
+
+            EntryStatementLogHelper::log($entry_statement->id, 'تعديل', 'رقم الطلب: #' . $entry_statement->serial_number);
+            UserLogHelper::log('تعديل حركة دخول', 'رقم الطلب: ' . $entry_statement->serial_number);
+
+            return redirect()->route('dashboard')->with('success', 'تم التحديث بنجاح.');
+
+        } catch (\Exception $e) {
+            \Log::error('فشل في تحديث حركة دخول', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString(),
+                'entry_id' => $entry_statement->id
+            ]);
+
+            return redirect()->back()->withInput()->with('error', 'حدث خطأ غير متوقع أثناء التحديث، يرجى المحاولة لاحقاً.');
+        }
     }
+
 
 
     public function show($id)
@@ -420,8 +479,10 @@ class EntryStatementController extends Controller
     public function edit(EntryStatement $entryStatement)
     {
         $carTypes = [
-            'سيارات سورية او اردنية او لبنانية',
-            'سيارات غير المذكورة',
+            'سيارات سورية',
+            'سيارات لبنانية',
+            'سيارات أردنية',
+            'سيارات غير السورية والاردنية واللبنانية',
             'دراجات نارية',
             'شاحنات وباصات خليجية',
         ];

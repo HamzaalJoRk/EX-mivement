@@ -11,7 +11,6 @@ class FinanceTransaction extends Model
         'amount',
         'description',
         'operation_for',
-
         'entry_statement_id',
         'receipt_number',
         'cashier_number',
@@ -59,7 +58,7 @@ class FinanceTransaction extends Model
     {
         $latest = self::latest('id')->first();
         $nextId = $latest ? $latest->id + 1 : 1;
-        return 'NBS-' . str_pad($nextId, 6, '0', STR_PAD_LEFT); // مثال: ENT-000001
+        return str_pad($nextId, 6, '0', STR_PAD_LEFT); // مثال: ENT-000001
     }
 
 }

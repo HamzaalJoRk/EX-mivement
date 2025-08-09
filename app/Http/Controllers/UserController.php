@@ -63,36 +63,36 @@ class UserController extends Controller
 
 
 
-public function store(Request $request)
-{
-    $this->validate($request, [
-        'name' => 'required',
-        'email' => 'required|email|unique:users,email',
-        'password' => 'sometimes|nullable|confirmed',
-    ]);
-
-    $input = $request->all();
-
-    if (!empty($input['password'])) {
-        $input['password'] = Hash::make($input['password']);
-    } else {
-        unset($input['password']);
-    }
-
-    $user = User::create($input);
-
-    $user->assignRole($request->input('roles'));
-
-    if ($user->hasRole('Finance')) {
-        FinanceBox::create([
-            'name' => 'صندوق مالي لـ ' . $user->name,
-            'user_id' => $user->id,
+    public function store(Request $request)
+    {
+        $this->validate($request, [
+            'name' => 'required',
+            'email' => 'required|email|unique:users,email',
+            'password' => 'sometimes|nullable|confirmed',
         ]);
-    }
 
-    return redirect()->route('users.index')
-        ->with('success', 'تم إنشاء المستخدم بنجاح');
-}
+        $input = $request->all();
+
+        if (!empty($input['password'])) {
+            $input['password'] = Hash::make($input['password']);
+        } else {
+            unset($input['password']);
+        }
+
+        $user = User::create($input);
+
+        $user->assignRole($request->input('roles'));
+
+        if ($user->hasRole('Finance')) {
+            FinanceBox::create([
+                'name' => 'صندوق مالي لـ ' . $user->name,
+                'user_id' => $user->id,
+            ]);
+        }
+
+        return redirect()->route('users.index')
+            ->with('success', 'تم إنشاء المستخدم بنجاح');
+    }
 
 
     public function show($id)
@@ -103,15 +103,14 @@ public function store(Request $request)
 
     public function edit($id)
     {
-        // if (!auth()->user()->can('edit-users')) {
-        //     abort(403, 'Unauthorized');
-        // }
-        $user = User::find($id);
-        $allRoles = Role::pluck('name', 'name')->all();
-        $userRole = $user->roles->pluck('name', 'name')->all();
+        $user = User::findOrFail($id);
+        $allRoles = Role::pluck('name', 'name')->all(); // name => name
+        $userRole = $user->roles->pluck('name')->toArray(); // array of role names
+        $borderCrossings = BorderCrossing::all();
 
-        return view('users.edit', compact('user', 'allRoles', 'userRole'));
+        return view('users.edit', compact('user', 'allRoles', 'userRole', 'borderCrossings'));
     }
+
 
     public function update(Request $request, $id)
     {

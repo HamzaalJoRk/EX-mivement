@@ -92,58 +92,121 @@
 
 <body onload="window.print();">
 
-    <div class="header" style="direction: ltr">
-        <img src="/qr.png" alt="QR Code">
+    <div>
+        <div class="header" style="direction: ltr">
+            <div class="qr_imge">
+                {!! QrCode::size(100)->generate($data->receipt_number) !!}
+            </div>
 
-        <div class="center">
-            <img src="/logo.jpg" alt="شعار" style="width: 60px;"><br>
+            <div class="center">
+                <img src="/logo.jpg" alt="شعار" style="width: 100px;"><br>
+            </div>
+
+            <div class="right">
+                أمانة {{$data->financeBox->user->borderCrossing->name}}<br>
+                بيان تصفية<br>
+                <span id="today-date"></span><br>
+                <span style="color: green;">إيصال قبض</span>
+            </div>
         </div>
 
-        <div class="right">
-            أمانة نصيب<br>
-            بيان تصفية<br>
-            <span id="today-date"></span><br>
-            <span style="color: green;">إيصال قبض</span>
+        <table>
+            <tr>
+                <td>رقم الإيصال</td>
+                <td>{{ $data->receipt_number }}</td>
+                <td>رقم التصفية</td>
+                <td>{{ $data->statement_number }}</td>
+            </tr>
+            <tr>
+                <td>السائق</td>
+                <td>{{ $data->driver_name }}</td>
+                <td>رقم السيارة</td>
+                <td>{{ $data->car_number }}</td>
+            </tr>
+            <tr>
+                <td>رسم العبور</td>
+                <td>{{ $data->fees }}</td>
+                <td>رسوم إضافية</td>
+                <td>{{ $data->additionalFee }}</td>
+            </tr>
+            <tr>
+                <td colspan="1">مجموع الغرامات</td>
+                <td colspan="3">{{ $data->violations_total }}</td>
+            </tr>
+            <tr>
+                <td colspan="1">الإجمالي</td>
+                <td colspan="3">{{ $data->total_amount }}</td>
+            </tr>
+        </table>
+
+        <div class="amount-box">
+            الإجمالي رقماً: {{ $data->total_amount }}
         </div>
+        <div class="amount-box">
+            الإجمالي كتابة: {{ $totalInWords }}
+        </div>
+
+        <div class="footer">الصندوق</div>
     </div>
 
-    <table>
-        <tr>
-            <td>رقم الإيصال</td>
-            <td>{{ $data->receipt_number }}</td>
-            <td>رقم التصفية</td>
-            <td>{{ $data->statement_number }}</td>
-        </tr>
-        <tr>
-            <td>السائق</td>
-            <td>{{ $data->driver_name }}</td>
-            <td>رقم السيارة</td>
-            <td>{{ $data->car_number }}</td>
-        </tr>
-        <tr>
-            <td>رسم العبور</td>
-            <td>{{ $data->fees }}</td>
-            <td>رسوم إضافية</td>
-            <td>{{ $data->additionalFee }}</td>
-        </tr>
-        <tr>
-            <td colspan="1">مجموع الغرامات</td>
-            <td colspan="3">{{ $data->violations_total }}</td>
-        </tr>
-        <tr>
-            <td colspan="1">الإجمالي</td>
-            <td colspan="3">{{ $data->total_amount }}</td>
-        </tr>
-    </table>
+    <div style="page-break-after: always;"></div>
 
-    <div class="amount-box">
-         الإجمالي رقماً: {{ $data->total_amount }}
-    </div>
-    <div class="amount-box">
-         الإجمالي كتابة: {{ $totalInWords }}
-    </div>
+    <div>
+        <div class="header" style="direction: ltr">
+            <div class="qr_imge">
+                {!! QrCode::size(100)->generate($data->receipt_number) !!}
+            </div>
 
-    <div class="footer">الصندوق</div>
+            <div class="center">
+                <img src="/logo.jpg" alt="شعار" style="width: 100px;"><br>
+            </div>
+
+            <div class="right">
+                أمانة {{$data->financeBox->user->borderCrossing->name}}<br>
+                بيان تصفية<br>
+                <span id="today-date"></span><br>
+                <span style="color: green;">إيصال قبض</span>
+            </div>
+        </div>
+
+        <table>
+            <tr>
+                <td>رقم الإيصال</td>
+                <td>{{ $data->receipt_number }}</td>
+                <td>رقم التصفية</td>
+                <td>{{ $data->statement_number }}</td>
+            </tr>
+            <tr>
+                <td>السائق</td>
+                <td>{{ $data->driver_name }}</td>
+                <td>رقم السيارة</td>
+                <td>{{ $data->car_number }}</td>
+            </tr>
+            <tr>
+                <td>رسم العبور</td>
+                <td>{{ $data->fees }}</td>
+                <td>رسوم إضافية</td>
+                <td>{{ $data->additionalFee }}</td>
+            </tr>
+            <tr>
+                <td colspan="1">مجموع الغرامات</td>
+                <td colspan="3">{{ $data->violations_total }}</td>
+            </tr>
+            <tr>
+                <td colspan="1">الإجمالي</td>
+                <td colspan="3">{{ $data->total_amount }}</td>
+            </tr>
+        </table>
+
+        <div class="amount-box">
+            الإجمالي رقماً: {{ $data->total_amount }}
+        </div>
+        <div class="amount-box">
+            الإجمالي كتابة: {{ $totalInWords }}
+        </div>
+
+        <div class="footer">الصندوق</div>
+    </div>
 
     <script>
         const today = new Date();

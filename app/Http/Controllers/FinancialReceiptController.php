@@ -13,8 +13,11 @@ class FinancialReceiptController extends Controller
         $user = Auth::user();
 
         // فلترة التاريخ
-        $startDate = $request->start_date;
-        $endDate = $request->end_date;
+        // $startDate = $request->start_date;
+        // $endDate = $request->end_date;
+        $startDate = $request->input('start_date', now()->toDateString());
+        $endDate = $request->input('end_date', now()->toDateString());
+
 
         $transactions = FinanceTransaction::query();
 
@@ -51,7 +54,7 @@ class FinancialReceiptController extends Controller
             'totalViolations' => $totalViolations,
             'startDate' => $startDate,
             'endDate' => $endDate,
-            'box' => $user->financeBox 
+            'box' => $user->financeBox
         ]);
     }
 

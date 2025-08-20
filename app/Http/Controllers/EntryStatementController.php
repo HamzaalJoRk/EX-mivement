@@ -200,7 +200,7 @@ class EntryStatementController extends Controller
 
         FinanceTransactionDetail::create([
             'finance_transaction_id' => $transaction->id,
-            'fee' => $request->entry_fee + $request->violations_total,
+            'fee' => $request->entry_fee + $request->additional_fees_total,
             'penalty' => 0,
             'violations_total' => $request->violations_total,
         ]);

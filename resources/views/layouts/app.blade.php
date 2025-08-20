@@ -120,7 +120,24 @@
             <ul class="nav navbar-nav align-items-center ms-auto">
                 <li class="nav-item d-none d-lg-block"
                     style="font-family: 'Cairo', sans-serif !important; font-weight: bold;">
-                    مرحبا. {{ auth()->user()->name }}
+                    مرحبا. {{ auth()->user()->name }} - @foreach(auth()->user()->getRoleNames() as $v)
+                        <label class="badge badge-secondary text-dark"
+                            style="font-family: 'Cairo', sans-serif !important; font-weight: bold;">
+                            @if ($v == 'Admin')
+                                المدير العام
+                            @elseif ($v == 'Customs')
+                                موظف جمارك
+                            @elseif ($v == 'CustomExit')
+                                موظف خروج
+                            @elseif ($v == 'Finance')
+                                موظف مالية
+                            @elseif ($v == 'CustomEntry')
+                                موظف دخول
+                            @else
+                                {{ $v }}
+                            @endif
+                        </label>
+                    @endforeach
                 </li>
                 <li class="nav-item dropdown dropdown-user"><a class="nav-link dropdown-toggle dropdown-user-link"
                         id="dropdown-user" href="#" data-bs-toggle="dropdown" aria-haspopup="true"

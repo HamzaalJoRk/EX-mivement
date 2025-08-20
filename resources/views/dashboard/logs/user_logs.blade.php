@@ -2,9 +2,9 @@
 
 @section('content')
     <div class="container">
-        <h4 class="mb-3">سجل عمليات المستخدم: {{ $user->name }}</h4>
+        <h4 class="mb-1">سجل عمليات المستخدم: {{ $user->name }}</h4>
 
-        <a href="{{ route('users.index') }}" class="btn btn-secondary mb-3">الرجوع لقائمة المستخدمين</a>
+        <a href="{{ route('users.index') }}" class="btn btn-secondary mb-1">الرجوع لقائمة المستخدمين</a>
 
         <table class="table table-bordered table-hover">
             <thead class="table-dark">

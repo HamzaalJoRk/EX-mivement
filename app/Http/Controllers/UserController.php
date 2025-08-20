@@ -146,10 +146,7 @@ class UserController extends Controller
 
     public function destroy(User $user)
     {
-        if (!auth()->user()->can('delete-users')) {
 
-            abort(403, 'Unauthorized');
-        }
         $user->delete();
         return redirect()->route('users.index')->with('success', 'User deleted successfully');
     }

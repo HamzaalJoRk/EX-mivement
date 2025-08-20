@@ -11,31 +11,25 @@
                 <th scope="col">
                     الصلاحية
                 </th>
-                <th scope="col">
-                    اجراء
-                </th>
             </tr>
         </thead>
         <tbody>
             @foreach($roles as $role)
                 <tr>
                     <td>
-                        {{ $role->name }}
-                    </td>
-                    <td>
-                        <div>
-                            <a href="{{ route('roles.edit', ['role' => $role->id]) }}" class="btn btn-primary">
-                                تعديل
-                            </a>
-                            <form method="POST" action="{{ route('roles.destroy', $role->id) }}"
-                                onsubmit="return confirm('Are you sure you want to delete this role?');">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="btn btn-danger">
-                                    حذف
-                                </button>
-                            </form>
-                        </div>
+                        @if ($role->name == 'Admin')
+                            المدير العام
+                        @elseif ($role->name == 'Customs')
+                            موظف جمارك
+                        @elseif ($role->name == 'CustomExit')
+                            موظف خروج
+                        @elseif ($role->name == 'Finance')
+                            موظف مالية
+                        @elseif ($role->name == 'CustomEntry')
+                            موظف دخول
+                        @else
+                            {{ $role->name }}
+                        @endif
                     </td>
                 </tr>
             @endforeach

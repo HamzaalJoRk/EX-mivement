@@ -26,7 +26,6 @@ return new class extends Migration {
             $table->decimal('exit_fee', 8, 2)->nullable();
             $table->timestamps();
         });
-
     }
 
 

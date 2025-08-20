@@ -57,7 +57,9 @@ class FinanceTransactionController extends Controller
         $transactions = $query->get();
         $total = $transactions->sum('amount');
 
-        return view('dashboard.finance.transactions.index', compact('transactions', 'total', 'totalFees', 'startDate', 'endDate'));
+        $box = $user->financeBox;
+
+        return view('dashboard.finance.transactions.index', compact('transactions', 'total','totalPenalties','totalViolations','box', 'totalFees', 'startDate', 'endDate'));
     }
 
     public function boxTransactions(Request $request, FinanceBox $box)

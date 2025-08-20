@@ -19,7 +19,7 @@ class RoleAndPermissionSeeder extends Seeder
             'تعديل مستخدم',
             'حذف مستخدم',
             'عرض مستخدم',
-            
+
             'اضافة صلاحية',
             'تعديل صلاحية',
             'حذف صلاحية',
@@ -33,7 +33,7 @@ class RoleAndPermissionSeeder extends Seeder
         $superAdminRole = Role::updateOrCreate(['name' => 'Admin']);
         $userRole = Role::updateOrCreate(['name' => 'Customs']);
         $CustomEntry = Role::updateOrCreate(['name' => 'CustomEntry']);
-        $CustomExit = Role::updateOrCreate(['name' => 'CustomExit']);   
+        $CustomExit = Role::updateOrCreate(['name' => 'CustomExit']);
         $FinanceRole = Role::updateOrCreate(['name' => 'Finance']);
         $superAdminRole->givePermissionTo($permissions);
 
@@ -43,12 +43,5 @@ class RoleAndPermissionSeeder extends Seeder
         );
 
         $superAdmin->assignRole($superAdminRole);
-
-        $user = User::updateOrCreate(
-            ['email' => 'user@example.com'],
-            ['name' => 'User', 'password' => Hash::make('password')]
-        );
-
-        $user->assignRole($userRole);
     }
 }

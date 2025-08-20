@@ -2,12 +2,12 @@
 
 @section('content')
 <div class="container">
-    <h1>Create Violation</h1>
+    <h1>انشاء مخالفة</h1>
 
     <form action="{{ route('violations.store') }}" method="POST">
         @csrf
         @include('dashboard.violations.form')
-        <button type="submit" class="btn btn-success mt-3">Create</button>
+        <button type="submit" class="btn btn-success mt-1">انشاء</button>
     </form>
 </div>
 @endsection

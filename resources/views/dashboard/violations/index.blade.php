@@ -9,9 +9,9 @@
         <thead>
             <tr>
                 <th>#</th>
-                <th>Title</th>
-                <th>Fee</th>
-                <th>Actions</th>
+                <th>العنوان</th>
+                <th>المبلغ</th>
+                <th>خيارات</th>
             </tr>
         </thead>
         <tbody>
@@ -21,10 +21,10 @@
                     <td>{{ $violation->title }}</td>
                     <td>{{ $violation->fee }}</td>
                     <td>
-                        <a href="{{ route('violations.edit', $violation) }}" class="btn btn-warning btn-sm">Edit</a>
+                        <a href="{{ route('violations.edit', $violation) }}" class="btn btn-warning btn-sm">تعديل</a>
                         <form action="{{ route('violations.destroy', $violation) }}" method="POST" class="d-inline">
                             @csrf @method('DELETE')
-                            <button onclick="return confirm('Are you sure?')" class="btn btn-danger btn-sm">Delete</button>
+                            <button onclick="return confirm('Are you sure?')" class="btn btn-danger btn-sm">حذف</button>
                         </form>
                     </td>
                 </tr>

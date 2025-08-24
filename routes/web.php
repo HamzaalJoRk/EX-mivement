@@ -94,6 +94,18 @@ Route::middleware(['auth'])
         Route::post('/finance-entry/checkout/{id}', [EntryStatementController::class, 'FinanceEntry'])->name('entry_statements.FinanceEntry');
         Route::post('/entry-statements/{entry}/add-violation', [EntryStatementController::class, 'addViolation'])->name('entry_statements.addviolation');
         Route::post('/entry-statements/{entry}/add-time', [EntryStatementController::class, 'addTime'])->name('entry_statements.addTime');
+
+        Route::get('/exit-statements/create', [ExitStatementController::class, 'create'])->name('exit_statements.create');
+        Route::post('/exit-statements/store', [ExitStatementController::class, 'store'])->name('exit_statements.store');
+        Route::get('/exit-statements-book/create', [ExitStatementController::class, 'createByBook'])->name('exit_statements.searchBook');
+        Route::get('/exit-statements-book/search-book', [ExitStatementController::class, 'searchByBook'])->name('exit_statements.searchBook');
+        Route::post('/exit-statements-book/store-from-book', [ExitStatementController::class, 'storeFromBook'])->name('exit_statements.storeFromBook');
+
+
+        Route::get('/entry-statements-book/create', [EntryStatementController::class, 'createByBook'])->name('entry_statements.searchBook');
+        Route::get('/entry-statements-book/search-book', [EntryStatementController::class, 'searchByBook'])->name('entry_statements.searchBook');
+        Route::post('/entry-statements-book/store-from-book', [EntryStatementController::class, 'storeFromBook'])->name('entry_statements.storeFromBook');
+
         Route::resource('/entry_statements', EntryStatementController::class);
         Route::resource('/exit-statements', ExitStatementController::class);
         Route::resource('/violations', ViolationController::class);

@@ -14,10 +14,10 @@ use App\Models\FinancialReceipt;
 use App\Models\Violation;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Crypt;
 
 class EntryStatementController extends Controller
 {
-
     public function index(Request $request)
     {
         $startDate = $request->input('startDate', now()->toDateString());
@@ -42,7 +42,6 @@ class EntryStatementController extends Controller
         ]);
     }
 
-
     public function entrySearch()
     {
         return view('dashboard.entry_statements.search');
@@ -57,12 +56,16 @@ class EntryStatementController extends Controller
         if (auth()->user()->hasRole('Finance') && $entry->completeFinanceExit == 1) {
             return redirect()->back()->with('error', 'تم دفع رسوم الخروج.');
         }
-        return redirect()->route('entry_statements.show', $entry->id)->with('success', 'تم العثور على البيان.');
-    }
+        if (auth()->user()->hasRole('Finance') && $entry->completeFinanceEntry && !$entry->is_checked_in) {
+            return redirect()->back()->with('error', 'لم يتم الدخول بعد.');
+        }
 
+        return redirect()->route('entry_statements.show', Crypt::encrypt($entry->id))->with('success', 'تم العثور على البيان.');
+    }
 
     public function addTime(Request $request, $id)
     {
+        dd($request->all());
         $entry = EntryStatement::findOrFail($id);
         $entry->stay_duration = $entry->stay_duration + $request->add_week;
         if ($request->add_week == 12) {
@@ -75,7 +78,6 @@ class EntryStatementController extends Controller
         UserLogHelper::log('دفع رسوم', 'رقم الطلب: ' . $entry->serial_number);
         return redirect()->back()->with('success', 'تم تمديد فترة البقاء بنجاح.');
     }
-
 
     public function FinanceExit(Request $request, $id)
     {
@@ -103,7 +105,7 @@ class EntryStatementController extends Controller
             $entry->car_number,
             $request->exit_fee,
             $request->additional_fees_total,
-            $request->violations_total,
+            $request->violations_total + $request->penalty,
         );
 
         FinanceTransactionDetail::create([
@@ -123,7 +125,6 @@ class EntryStatementController extends Controller
 
         return redirect()->route('print.card', $transaction->id)->with('success', 'تم دفع المستحقات بنجاح.');
     }
-
 
     public function CompleteExit(Request $request)
     {
@@ -162,11 +163,8 @@ class EntryStatementController extends Controller
         return redirect()->back()->with('success', 'تم تسجيل الدخول للمركبة بنجاح.');
     }
 
-
     public function FinanceEntry(Request $request, $id)
     {
-
-        // dd($request->all());
         $entry = EntryStatement::findOrFail($id);
         $entry->stay_fee = $request->input('total_entry_dollar');
         $entry->completeFinanceEntry = true;
@@ -205,16 +203,13 @@ class EntryStatementController extends Controller
             'violations_total' => $request->violations_total,
         ]);
 
-
         EntryStatementLogHelper::log($entry->id, 'دفع رسوم', 'تم دفع رسوم الدخول وهي: ' . $entry->exit_fee . '$' . ' وبرقم تسلسلي: ' . $entry->serial_number);
         UserLogHelper::log('دفع رسوم', 'رقم الطلب: ' . $entry->serial_number);
         return redirect()->route('print.card', $transaction->id)->with('success', 'تم دفع المستحقات بنجاح.');
     }
 
-
     public function checkout(Request $request, $id)
     {
-        // dd($request->all());
         $entry = EntryStatement::findOrFail($id);
 
         $entry->checked_out_date = Carbon::now();
@@ -229,8 +224,6 @@ class EntryStatementController extends Controller
         return redirect()->back()->with('success', 'تمت اضافة حركة الخروج بنجاح.');
     }
 
-
-
     public function addViolation(Request $request, $id)
     {
         $request->validate([
@@ -244,7 +237,6 @@ class EntryStatementController extends Controller
 
         return redirect()->back()->with('success', 'تمت إضافة المخالفة بنجاح.');
     }
-
 
     public function create()
     {
@@ -298,6 +290,10 @@ class EntryStatementController extends Controller
                     $validated['stay_duration'] = 0;
                     break;
                 case 'سيارات لبنانية':
+                    $existing = EntryStatement::where('car_number', $car_number)->first();
+                    $validated['stay_fee'] = $existing ? 10 : 15;
+                    $validated['stay_duration'] = 0;
+                    break;
                 case 'سيارات أردنية':
                     $existing = EntryStatement::where('car_number', $car_number)->first();
                     $validated['stay_fee'] = $existing ? 10 : 15;
@@ -306,7 +302,7 @@ class EntryStatementController extends Controller
             }
 
             if ($validated['car_brand'] == null) {
-                $validated['car_brand'] = 'none'; // تعديل الخطأ هنا كان = بدل ==
+                $validated['car_brand'] = 'none';
             }
 
             $entry = EntryStatement::create($validated);
@@ -325,9 +321,10 @@ class EntryStatementController extends Controller
             EntryStatementLogHelper::log($entry->id, 'إنشاء', 'رقم الطلب: #' . $entry->serial_number);
             UserLogHelper::log('انشاء حركة دخول', 'رقم الطلب: ' . $entry->serial_number);
 
-            return redirect()->route('entry_statements.show', $entry->id)->with('success', 'تمت الإضافة بنجاح.');
+            return redirect()->route('entry_statements.show', Crypt::encrypt($entry->id))->with('success', 'تمت الإضافة بنجاح.');
 
         } catch (\Exception $e) {
+            dd($e->getMessage());
             \Log::error('فشل في إنشاء حركة دخول', [
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
@@ -339,7 +336,73 @@ class EntryStatementController extends Controller
         }
     }
 
+    public function createByBook(Request $request)
+    {
+        return view('dashboard.entry_statements.book_create');
+    }
 
+    public function searchByBook(Request $request)
+    {
+        $book_number = $request->get('book_number');
+
+        $foundEntry = EntryStatement::where('book_number', $book_number)->first();
+
+        if (!$foundEntry) {
+            return redirect()->back()->with('error', 'لم يتم العثور على بيانات بهذا الدفتر.');
+        }
+
+        return view('dashboard.entry_statements.book_create', [
+            'foundEntry' => $foundEntry,
+            'carTypes' => ['سيارات سورية', 'سيارات لبنانية', 'سيارات أردنية', 'شاحنات وباصات خليجية', 'دراجات نارية'],
+            'borderCrossings' => BorderCrossing::all()
+        ]);
+    }
+
+
+    public function storeFromBook(Request $request)
+    {
+        $book_number = $request->input('book_number');
+        $existing = EntryStatement::where('book_number', $book_number)->firstOrFail();
+        if ($existing->car_type == 'سيارات سورية') {
+            $stay_fee = 0;
+        } else {
+            if ($existing->book_type == 'خاص') {
+                $stay_fee = 10;
+            } elseif ($existing->book_type == 'عام') {
+                $stay_fee = 0;
+            }
+        }
+
+        $newEntry = EntryStatement::create([
+            'car_type' => $existing->car_type,
+            'driver_name' => $existing->driver_name,
+            'car_number' => $existing->car_number,
+            'car_brand' => $existing->car_brand,
+            'car_nationality' => $existing->car_nationality,
+            'book_number' => $existing->book_number,
+            'book_type' => $existing->book_type,
+            'border_crossing_id' => auth()->user()->border_crossing_id,
+            'stay_duration' => $existing->stay_duration,
+            'stay_fee' => $stay_fee,
+            'type' => 'دخول وخروج',
+        ]);
+
+        EntryCard::create([
+            'entry_statement_id' => $newEntry->id,
+            'owner_name' => $existing->driver_name,
+            'car_number' => $existing->car_number,
+            'car_type' => $existing->car_type,
+            'stay_duration' => $existing->stay_duration . 'شهر',
+            'entry_date' => now()->toDateString(),
+            'exit_date' => now()->addMonths($existing->stay_duration ?? 1)->toDateString(),
+            'qr_code' => null,
+        ]);
+
+        EntryStatementLogHelper::log($newEntry->id, 'إنشاء', 'رقم الطلب: #' . $newEntry->serial_number);
+        UserLogHelper::log('انشاء حركة دخول جديدة من رقم دفتر', 'رقم الطلب: ' . $newEntry->serial_number);
+
+        return redirect()->route('entry_statements.show', Crypt::encrypt($newEntry->id))->with('success', 'تم إنشاء الحركة بنجاح من رقم الدفتر.');
+    }
 
     public function update(EntryStatementRequest $request, EntryStatement $entry_statement)
     {
@@ -383,6 +446,10 @@ class EntryStatementController extends Controller
                 $validated['car_brand'] = 'none';
             }
 
+            if (in_array($entry_statement->car_type, ['سيارات غير السورية والاردنية واللبنانية', 'دراجات نارية', 'شاحنات وباصات خليجية'])) {
+                $validated['book_number'] = null;
+                $validated['book_type'] = null;
+            }
             $entry_statement->update($validated);
 
             EntryStatementLogHelper::log($entry_statement->id, 'تعديل', 'رقم الطلب: #' . $entry_statement->serial_number);
@@ -403,10 +470,9 @@ class EntryStatementController extends Controller
         }
     }
 
-
-
-    public function show($id)
+    public function show($encryptedId)
     {
+        $id = Crypt::decrypt($encryptedId);
         $entry_statement = EntryStatement::with(['borderCrossing', 'exitBorderCrossing'])->findOrFail($id);
 
         // فقط المخالفات غير المدفوعة
@@ -414,13 +480,27 @@ class EntryStatementController extends Controller
 
         // تواريخ
         $createdAt = Carbon::parse($entry_statement->created_at);
-        $weeks = $entry_statement->stay_duration;
-        $allowedStay = $createdAt->copy()->addDays($weeks * 7);
+        $stayDuration = $entry_statement->stay_duration; // الرقم
+
+        $stayType = $entry_statement->stay_type ?? 'week';
+        if ($stayDuration == 2) {
+            $stayType = 'week';
+        } else {
+            $stayType = 'month';
+        }
+        // تحديد التاريخ المسموح
+        if ($stayType === 'month') {
+            $allowedStay = $createdAt->copy()->addMonths($stayDuration / 4);
+        } else {
+            $allowedStay = $createdAt->copy()->addDays($stayDuration * 7);
+        }
+
         $today = Carbon::now();
 
         // التأخير
         $delayDays = $today->gt($allowedStay) ? $today->diffInDays($allowedStay) : 0;
         $penaltyWeeks = ceil($delayDays / 7);
+
 
         // غرامة التأخير
         $penaltyPerWeek = 0;
@@ -473,8 +553,6 @@ class EntryStatementController extends Controller
             'total_entry_dollar'
         ));
     }
-
-
 
     public function edit(EntryStatement $entryStatement)
     {

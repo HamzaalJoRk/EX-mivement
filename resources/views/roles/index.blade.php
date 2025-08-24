@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-    <h1 class="mb-1">🛢️ قائمة الصلاحيات</h1>
+    <h1 class="mb-1">قائمة الصلاحيات</h1>
     <a href="/user-create" class="btn btn-primary mb-2">
         اضافة مستخدم
     </a>
@@ -19,14 +19,16 @@
                     <td>
                         @if ($role->name == 'Admin')
                             المدير العام
-                        @elseif ($role->name == 'Customs')
-                            موظف جمارك
+                        @elseif ($role->name == 'CustomEntry')
+                            جمارك دخول
                         @elseif ($role->name == 'CustomExit')
-                            موظف خروج
+                            جمارك خروج
+                        @elseif ($role->name == 'babExit')
+                            موظف باب خروج
                         @elseif ($role->name == 'Finance')
                             موظف مالية
-                        @elseif ($role->name == 'CustomEntry')
-                            موظف دخول
+                        @elseif ($role->name == 'babEntry')
+                            موظف باب دخول
                         @else
                             {{ $role->name }}
                         @endif

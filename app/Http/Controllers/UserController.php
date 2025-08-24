@@ -39,9 +39,7 @@ class UserController extends Controller
 
     public function create()
     {
-        if (!auth()->user()->can('create-users')) {
-            abort(403, 'Unauthorized');
-        }
+
         $allRoles = Role::pluck('name', 'name')->all();
         $borderCrossings = BorderCrossing::all();
         return view('users.create', [
@@ -59,8 +57,6 @@ class UserController extends Controller
             'borderCrossings' => $borderCrossings
         ]);
     }
-
-
 
 
     public function store(Request $request)

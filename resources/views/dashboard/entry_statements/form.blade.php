@@ -9,7 +9,6 @@
         </select>
     </div>
 
-
     @if (auth()->user()->hasRole('Admin'))
         <div class="col-md-6 mb-3" id="border">
             <label class="form-label" for="border_crossing_id">المعبر الحدودي:</label>
@@ -22,9 +21,11 @@
                 @endforeach
             </select>
         </div>
+        <input type="text" name="type" class="form-control" style="display: none" value="دخول وخروج">
     @else
         <input type="text" name="border_crossing_id" class="form-control" style="display: none"
             value="{{ auth()->user()->border_crossing_id }}">
+        <input type="text" name="type" class="form-control" style="display: none" value="دخول وخروج">
     @endif
     <div class="col-md-6 mb-2">
         <label>اسم السائق</label>
@@ -61,6 +62,24 @@
         </select>
         @error('stay_duration') <small class="text-danger">{{ $message }}</small> @enderror
     </div>
+
+    <div class="col-md-6 mb-2" id="book_number_wrapper" style="display: none;">
+        <label>رقم الدفتر</label>
+        <input type="text" name="book_number" class="form-control"
+            value="{{ old('book_number', $entry_statement->book_number ?? '') }}">
+        @error('book_number') <small class="text-danger">{{ $message }}</small> @enderror
+    </div>
+
+    <div class="col-md-6 mb-2" id="book_type_wrapper" style="display: none;">
+        <label>نوع الدفتر</label>
+        <select name="book_type" class="form-control">
+            <option value="">-- اختر نوع الدفتر --</option>
+            <option value="خاص" {{ old('book_type', $entry_statement->book_type ?? '') == 'private' ? 'selected' : '' }}>خاص</option>
+            <option value="عام" {{ old('book_type', $entry_statement->book_type ?? '') == 'public' ? 'selected' : '' }}>عام</option>
+        </select>
+        @error('book_type') <small class="text-danger">{{ $message }}</small> @enderror
+    </div>
+
 </div>
 
 @section('scripts')
@@ -69,6 +88,10 @@
             const carTypeSelect = document.getElementById('car_type');
             const stayDurationWrapper = document.getElementById('stay_duration_wrapper');
             const stayDurationSelect = document.getElementById('stay_duration');
+
+            // الحقول الجديدة
+            const bookNumberWrapper = document.getElementById('book_number_wrapper');
+            const bookTypeWrapper = document.getElementById('book_type_wrapper');
 
             const hiddenTypes = ['سيارات سورية', 'سيارات لبنانية', 'سيارات أردنية'];
 
@@ -91,12 +114,18 @@
                 });
             }
 
-            function toggleStayDurationVisibility(type) {
+            function toggleFields(type) {
+                // إخفاء مدة البقاء عند الأنواع المحددة
                 if (hiddenTypes.includes(type)) {
                     stayDurationWrapper.style.display = 'none';
-                    stayDurationSelect.innerHTML = ''; // Clear options
+                    stayDurationSelect.innerHTML = '';
+                    bookNumberWrapper.style.display = 'block';
+                    bookTypeWrapper.style.display = 'block';
                 } else {
                     stayDurationWrapper.style.display = 'block';
+                    bookNumberWrapper.style.display = 'none';
+                    bookTypeWrapper.style.display = 'none';
+
                     if (type === 'شاحنات وباصات خليجية') {
                         updateStayDurations(gulfTruckDurations);
                     } else {
@@ -106,11 +135,12 @@
             }
 
             carTypeSelect.addEventListener('change', function () {
-                toggleStayDurationVisibility(this.value);
+                toggleFields(this.value);
             });
 
-            // Trigger on page load if value exists
-            toggleStayDurationVisibility(carTypeSelect.value);
+            // تشغيل أول مرة
+            toggleFields(carTypeSelect.value);
         });
     </script>
+
 @endsection

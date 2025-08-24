@@ -31,6 +31,9 @@ class EntryStatementRequest extends FormRequest
             'stay_fee' => 'numeric|min:0',
             'is_checked_out' => 'boolean',
             'exit_fee' => 'numeric|min:0',
+            'book_number' => 'nullable|max:255',
+            'book_type' => 'nullable|max:255',
+            'type' => 'required|max:255',
         ];
     }
 

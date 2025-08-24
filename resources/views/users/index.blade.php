@@ -1,9 +1,9 @@
 @extends('layouts.app')
 
 @section('content')
-    <h1 class="mb-1">🛢️ قائمة المستخدمين</h1>
+    <h1 class="mb-1">قائمة المستخدمين</h1>
 
-    <a href="/user-create" class="btn btn-primary mb-1">
+    <a href="/user-create" class="btn btn-primary">
         اضافة مستخدم
     </a>
     <table class="table table-bordered mt-1">
@@ -47,14 +47,16 @@
                                 <label class="badge badge-secondary text-dark">
                                     @if ($v == 'Admin')
                                         المدير العام
-                                    @elseif ($v == 'Customs')
-                                        موظف جمارك
+                                    @elseif ($v == 'CustomEntry')
+                                        جمارك دخول
                                     @elseif ($v == 'CustomExit')
-                                        موظف خروج
+                                        جمارك خروج
+                                    @elseif ($v == 'babExit')
+                                        موظف باب خروج
                                     @elseif ($v == 'Finance')
                                         موظف مالية
-                                    @elseif ($v == 'CustomEntry')
-                                        موظف دخول
+                                    @elseif ($v == 'babEntry')
+                                        موظف باب دخول
                                     @else
                                         {{ $v }}
                                     @endif
@@ -71,14 +73,16 @@
                         <a href="{{ route('users.edit', ['user' => $user->id]) }}" class="btn btn-info btn-sm">
                             تعديل
                         </a>
-                        <form method="POST" action="{{ route('users.destroy', $user->id) }}"
-                            onsubmit="return confirm('Are you sure you want to delete this user?');">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="btn btn-danger btn-sm">
-                                حذف
-                            </button>
-                        </form>
+                        @if (!$user->hasRole('Admin'))
+                            <form method="POST" action="{{ route('users.destroy', $user->id) }}"
+                                onsubmit="return confirm('Are you sure you want to delete this user?');">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn btn-danger btn-sm">
+                                    حذف
+                                </button>
+                            </form>
+                        @endif
                     </td>
                 </tr>
             @endforeach

@@ -2,7 +2,7 @@
 
 @section('content')
     <div class="container">
-        <h1>إنشاء حركة دخول</h1>
+        <h1>إنشاء حركة خروج</h1>
 
         @if ($errors->any())
             <div class="alert alert-danger">
@@ -14,15 +14,13 @@
                 </ul>
             </div>
         @endif
-
         @if (session('success'))
             <div class="alert alert-success">
                 {{ session('success') }}
             </div>
         @endif
-        <form action="{{ route('entry_statements.store') }}" method="POST">
+        <form action="{{ route('exit_statements.store') }}" method="POST">
             @csrf
-
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <label for="car_type" class="form-label">نوع السيارة</label>
@@ -46,12 +44,11 @@
                             @endforeach
                         </select>
                     </div>
-                    <input type="text" name="type" class="form-control" style="display: none" value="دخول وخروج">
                 @else
                     <input type="text" name="border_crossing_id" class="form-control" style="display: none"
                         value="{{ auth()->user()->border_crossing_id }}">
-                    <input type="text" name="type" class="form-control" style="display: none" value="دخول وخروج">
                 @endif
+                <input type="text" name="status" class="form-control" style="display: none" value="خروج">
                 <div class="col-md-6 mb-2">
                     <label>اسم السائق</label>
                     <input type="text" name="driver_name" class="form-control"
@@ -78,7 +75,7 @@
                     @error('car_number') <small class="text-danger">{{ $message }}</small> @enderror
                 </div>
 
-                <div class="col-md-6 mb-2" id="stay_duration_wrapper">
+                <!-- <div class="col-md-6 mb-2" id="stay_duration_wrapper">
                     <label>مدة البقاء</label>
                     <select name="stay_duration" id="stay_duration" class="form-control">
                         <option value="">-- اختر مدة البقاء --</option>
@@ -86,25 +83,7 @@
                         <option value="12">ثلاث أشهر - 200$</option>
                     </select>
                     @error('stay_duration') <small class="text-danger">{{ $message }}</small> @enderror
-                </div>
-
-                <div class="col-md-6 mb-2" id="book_number_wrapper" style="display: none;">
-                    <label>رقم الدفتر</label>
-                    <input type="text" name="book_number" class="form-control"
-                        value="{{ old('book_number', $entry_statement->book_number ?? '') }}">
-                    @error('book_number') <small class="text-danger">{{ $message }}</small> @enderror
-                </div>
-
-                <div class="col-md-6 mb-2" id="book_type_wrapper" style="display: none;">
-                    <label>نوع الدفتر</label>
-                    <select name="book_type" class="form-control">
-                        <option value="">-- اختر نوع الدفتر --</option>
-                        <option value="خاص" {{ old('book_type', $entry_statement->book_type ?? '') == 'private' ? 'selected' : '' }}>خاص</option>
-                        <option value="عام" {{ old('book_type', $entry_statement->book_type ?? '') == 'public' ? 'selected' : '' }}>عام</option>
-                    </select>
-                    @error('book_type') <small class="text-danger">{{ $message }}</small> @enderror
-                </div>
-
+                </div> -->
             </div>
 
             @section('scripts')
@@ -113,9 +92,6 @@
                         const carTypeSelect = document.getElementById('car_type');
                         const stayDurationWrapper = document.getElementById('stay_duration_wrapper');
                         const stayDurationSelect = document.getElementById('stay_duration');
-
-                        const bookNumberWrapper = document.getElementById('book_number_wrapper');
-                        const bookTypeWrapper = document.getElementById('book_type_wrapper');
 
                         const hiddenTypes = ['سيارات سورية', 'سيارات لبنانية', 'سيارات أردنية'];
 
@@ -138,17 +114,12 @@
                             });
                         }
 
-                        function toggleFields(type) {
+                        function toggleStayDurationVisibility(type) {
                             if (hiddenTypes.includes(type)) {
                                 stayDurationWrapper.style.display = 'none';
-                                stayDurationSelect.innerHTML = '';
-                                bookNumberWrapper.style.display = 'block';
-                                bookTypeWrapper.style.display = 'block';
+                                stayDurationSelect.innerHTML = ''; // Clear options
                             } else {
                                 stayDurationWrapper.style.display = 'block';
-                                bookNumberWrapper.style.display = 'none';
-                                bookTypeWrapper.style.display = 'none';
-
                                 if (type === 'شاحنات وباصات خليجية') {
                                     updateStayDurations(gulfTruckDurations);
                                 } else {
@@ -158,15 +129,13 @@
                         }
 
                         carTypeSelect.addEventListener('change', function () {
-                            toggleFields(this.value);
+                            toggleStayDurationVisibility(this.value);
                         });
 
-                        toggleFields(carTypeSelect.value);
+                        toggleStayDurationVisibility(carTypeSelect.value);
                     });
                 </script>
-
             @endsection
-
             <button type="submit" class="btn btn-primary mt-1">إنشاء</button>
         </form>
     </div>

@@ -27,8 +27,8 @@ class FinanceTransactionController extends Controller
             ]);
         }
 
-        $startDate = $request->input('start_date');
-        $endDate = $request->input('end_date');
+        $startDate = $request->input('start_date', now()->toDateString());
+        $endDate = $request->input('end_date', now()->toDateString());
 
         $query = $user->financeBox->transactions()->orderBy('created_at', 'desc');
 
@@ -59,13 +59,15 @@ class FinanceTransactionController extends Controller
 
         $box = $user->financeBox;
 
-        return view('dashboard.finance.transactions.index', compact('transactions', 'total','totalPenalties','totalViolations','box', 'totalFees', 'startDate', 'endDate'));
+        return view('dashboard.finance.transactions.index', compact('transactions', 'total', 'totalPenalties', 'totalViolations', 'box', 'totalFees', 'startDate', 'endDate'));
     }
 
     public function boxTransactions(Request $request, FinanceBox $box)
     {
-        $startDate = $request->input('start_date');
-        $endDate = $request->input('end_date');
+        // $startDate = $request->input('start_date');
+        // $endDate = $request->input('end_date');
+        $startDate = $request->input('start_date', now()->toDateString());
+        $endDate = $request->input('end_date', now()->toDateString());
 
         $user = User::findOrFail($box->user_id);
 
@@ -80,6 +82,10 @@ class FinanceTransactionController extends Controller
         } else {
             $today = Carbon::now()->toDateString();
             $query->whereDate('created_at', $today);
+        }
+
+        if ($request->filled('serial')) {
+            $query->where('id', $request->receipt_number);
         }
 
         $transactions = $query->get();

@@ -15,7 +15,10 @@ return new class extends Migration {
             $table->string('car_type');
             $table->string('car_nationality');
             $table->string('car_brand');
+            $table->string('type');
             $table->string('driver_name');
+            $table->string('book_number')->nullable();
+            $table->enum('book_type', ['خاص', 'عام'])->nullable();
             $table->string('car_number');
             $table->integer('stay_duration');
             $table->decimal('stay_fee', 8, 2);

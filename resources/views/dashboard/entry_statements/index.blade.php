@@ -20,12 +20,12 @@
                         <i class="fas fa-arrow-rotate-left"></i>
                     </a>
                 </form>
-                @if (auth()->user()->hasRole('Customs') || auth()->user()->hasRole('Admin'))
+                @if (auth()->user()->hasRole('CustomEntry') || auth()->user()->hasRole('Admin'))
                     <a href="{{ route('entry_statements.create') }}" class="btn btn-primary mt-1">إضافة حركة جديدة</a>
                 @endif
-
-                <div class="text-end">
-                </div>
+                @if (auth()->user()->hasRole('CustomEntry') || auth()->user()->hasRole('Admin'))
+                    <a href="/entry-statements-book/create" class="btn btn-primary mt-1">إضافة حركة لدفتر</a>
+                @endif
             </div>
 
             <div class="col-md-6">
@@ -54,8 +54,6 @@
             </div>
         </div>
 
-
-
         @if(session('success'))
             <script>
                 Swal.fire({
@@ -66,7 +64,6 @@
                 });
             </script>
         @endif
-
 
         <div class="table-responsive" style="overflow-x: auto; white-space: nowrap;">
             <table id="entryTable" class="table table-bordered table-striped w-100"
@@ -110,6 +107,10 @@
                             <input type="text" id="filterExitFee" class="form-control form-control-sm"
                                 placeholder="ابحث عن رسم الخروج">
                         </th>
+                        <th>رقم الدفتر
+                            <input type="text" id="filterBookNumber" class="form-control form-control-sm"
+                                placeholder="ابحث عن رقم الدفتر">
+                        </th>
                         <th>خيارات</th>
                     </tr>
                 </thead>
@@ -119,7 +120,8 @@
                         <tr>
                             <td>{{ $entry->serial_number }}</td>
                             <td>
-                                <a href="{{ route('entry_statements.show', $entry->id) }}" style="color: #000;" title="عرض">
+                                <a href="{{ route('entry_statements.show', Crypt::encrypt($entry->id)) }}" style="color: #000;"
+                                    title="عرض">
                                     {{ $entry->car_type }}
                                 </a>
                             </td>
@@ -149,6 +151,7 @@
                                 @endif
                             </td>
                             <td>{{ $entry->exit_fee ? number_format($entry->exit_fee, 2) : 'لم تخرج' }}</td>
+                            <td>{{ $entry->book_number ? $entry->book_number : '-' }}</td>
                             <td>
                                 <div class="d-flex justify-content-start gap-1">
                                     <a href="{{ route('entry.logs', $entry->id) }}" class="btn btn-sm btn-info">
@@ -277,13 +280,13 @@
             $('#filterCheckedOut').on('keyup', function () {
                 table.column(6).search(this.value).draw();
             });
+            $('#filterBookNumber').on('keyup', function () {
+                table.column(8).search(this.value).draw();
+            });
             $('#filterExitFee').on('keyup', function () {
                 table.column(7).search(this.value).draw();
             });
-
-
         });
-
 
         function confirmDelete(id) {
             Swal.fire({
@@ -306,19 +309,19 @@
             Swal.fire({
                 title: 'إجراء مطلوب',
                 html: `
-                                                            <div>
-                                                                <a href="#" class="btn btn-danger btn-sm"
-                                                                    title="عرض">
-                                                                    تسجيل خروج
-                                                                </a>
-                                                            </div>
-                                                            <div class="mt-2">
-                                                                <a href="#" class="btn btn-info btn-sm"
-                                                                    title="عرض">
-                                                                    تمديد فترة البقاء
-                                                                </a>
-                                                            </div>
-                                                        `,
+                                <div>
+                                    <a href="#" class="btn btn-danger btn-sm"
+                                        title="عرض">
+                                        تسجيل خروج
+                                    </a>
+                                </div>
+                                <div class="mt-2">
+                                    <a href="#" class="btn btn-info btn-sm"
+                                        title="عرض">
+                                        تمديد فترة البقاء
+                                    </a>
+                                </div>
+                            `,
                 showCancelButton: true,
                 confirmButtonText: 'تأكيد',
                 cancelButtonText: 'إلغاء',

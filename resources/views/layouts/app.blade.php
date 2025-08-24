@@ -113,7 +113,10 @@
                 </ul>
                 <ul class="nav navbar-nav">
                     <li class="nav-item d-none d-lg-block"><a class="nav-link bookmark-star"></a>
-                        <h2 style="font-weight: bold;font-family: 'Cairo', sans-serif;"> معبر نصيب - الجمارك </h2>
+                        <h2 style="font-weight: bold;font-family: 'Cairo', sans-serif;">
+                            {{ auth()->user()->borderCrossing ? auth()->user()->borderCrossing->name : 'الادارة' }}
+                            - الجمارك
+                        </h2>
                     </li>
                 </ul>
             </div>
@@ -121,22 +124,21 @@
                 <li class="nav-item d-none d-lg-block"
                     style="font-family: 'Cairo', sans-serif !important; font-weight: bold;">
                     مرحبا. {{ auth()->user()->name }} - @foreach(auth()->user()->getRoleNames() as $v)
-                        <label class="badge badge-secondary text-dark"
-                            style="font-family: 'Cairo', sans-serif !important; font-weight: bold;">
-                            @if ($v == 'Admin')
-                                المدير العام
-                            @elseif ($v == 'Customs')
-                                موظف جمارك
-                            @elseif ($v == 'CustomExit')
-                                موظف خروج
-                            @elseif ($v == 'Finance')
-                                موظف مالية
-                            @elseif ($v == 'CustomEntry')
-                                موظف دخول
-                            @else
-                                {{ $v }}
-                            @endif
-                        </label>
+                        @if ($v == 'Admin')
+                            المدير العام
+                        @elseif ($v == 'CustomEntry')
+                            جمارك دخول
+                        @elseif ($v == 'CustomExit')
+                            جمارك خروج
+                        @elseif ($v == 'babExit')
+                            موظف باب خروج
+                        @elseif ($v == 'Finance')
+                            موظف مالية
+                        @elseif ($v == 'babEntry')
+                            موظف باب دخول
+                        @else
+                            {{ $v }}
+                        @endif
                     @endforeach
                 </li>
                 <li class="nav-item dropdown dropdown-user"><a class="nav-link dropdown-toggle dropdown-user-link"
@@ -181,10 +183,13 @@
                         <span class="brand-logo">
                             <img src="{{ asset('logo.jpg') }}" alt="" />
                         </span>
-                        <h2 class="brand-text" style="color: #fff;">معبر نصيب الحدودي</h2>
+                        <h2 class="brand-text" style="color: #fff;">
+                            {{ auth()->user()->borderCrossing ? auth()->user()->borderCrossing->name : 'الادارة' }}
+                        </h2>
                     </a></li>
-                <li class="nav-item nav-toggle"><a class="nav-link modern-nav-toggle pe-0" data-bs-toggle="collapse"><i
-                            class="d-block d-xl-none text-primary toggle-icon font-medium-4" data-feather="x"></i><i
+                <li style="color: #fff;" class="nav-item nav-toggle"><a class="nav-link modern-nav-toggle pe-0"
+                        data-bs-toggle="collapse"><i class="d-block d-xl-none text-primary toggle-icon font-medium-4"
+                            data-feather="x"></i><i
                             class="d-none d-xl-block collapse-toggle-icon font-medium-4  text-primary"
                             data-feather="disc" data-ticon="disc"></i></a></li>
             </ul>
@@ -236,11 +241,32 @@
                     </li>
                 @endif
 
-                @if (auth()->user()->hasRole('Customs') || auth()->user()->hasRole('Admin'))
+                @if (auth()->user()->hasRole('CustomEntry') || auth()->user()->hasRole('Admin'))
                     <li class="nav-item">
                         <a class="d-flex align-items-center" href="{{ route('entry_statements.create') }}">
                             <i class="fas fa-sign-in-alt me-1"></i>
                             <span>تسجيل حركة دخول</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="d-flex align-items-center" href="/entry-statements-book/create">
+                            <i class="fas fa-sign-in-alt me-1"></i>
+                            <span> تسجيل حركة دخول لدفتر</span>
+                        </a>
+                    </li>
+                @endif
+
+                @if (auth()->user()->hasRole('CustomExit') || auth()->user()->hasRole('Admin'))
+                    <li class="nav-item">
+                        <a class="d-flex align-items-center" href="/exit-statements/create">
+                            <i class="fas fa-sign-in-alt me-1"></i>
+                            <span>تسجيل حركة خروج</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="d-flex align-items-center" href="/exit-statements-book/create">
+                            <i class="fas fa-sign-in-alt me-1"></i>
+                            <span> تسجيل حركة خروج لدفتر</span>
                         </a>
                     </li>
                 @endif

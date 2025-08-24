@@ -31,9 +31,10 @@ class RoleAndPermissionSeeder extends Seeder
         }
 
         $superAdminRole = Role::updateOrCreate(['name' => 'Admin']);
-        $userRole = Role::updateOrCreate(['name' => 'Customs']);
         $CustomEntry = Role::updateOrCreate(['name' => 'CustomEntry']);
         $CustomExit = Role::updateOrCreate(['name' => 'CustomExit']);
+        $babEntry = Role::updateOrCreate(['name' => 'babEntry']);
+        $babExit = Role::updateOrCreate(['name' => 'babExit']);
         $FinanceRole = Role::updateOrCreate(['name' => 'Finance']);
         $superAdminRole->givePermissionTo($permissions);
 

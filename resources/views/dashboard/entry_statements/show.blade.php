@@ -147,7 +147,7 @@
                             @endif
                         @endif
                     @endif
-                    @if (auth()->user()->hasRole('Admin') || auth()->user()->hasRole('CustomEntry'))
+                    @if (auth()->user()->hasRole('Admin') || auth()->user()->hasRole('CustomEntry') || auth()->user()->hasRole('CustomExit'))
                         <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#ViolationModal">
                             اضافة مخالفة
                         </button>

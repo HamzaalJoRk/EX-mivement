@@ -65,17 +65,19 @@
 
     <div class="col-md-6 mb-2" id="book_number_wrapper" style="display: none;">
         <label>رقم الدفتر</label>
-        <input type="text" name="book_number" class="form-control"
+        <input type="text" name="book_number" class="form-control" required
             value="{{ old('book_number', $entry_statement->book_number ?? '') }}">
         @error('book_number') <small class="text-danger">{{ $message }}</small> @enderror
     </div>
 
     <div class="col-md-6 mb-2" id="book_type_wrapper" style="display: none;">
         <label>نوع الدفتر</label>
-        <select name="book_type" class="form-control">
+        <select name="book_type" class="form-control" required>
             <option value="">-- اختر نوع الدفتر --</option>
-            <option value="خاص" {{ old('book_type', $entry_statement->book_type ?? '') == 'private' ? 'selected' : '' }}>خاص</option>
-            <option value="عام" {{ old('book_type', $entry_statement->book_type ?? '') == 'public' ? 'selected' : '' }}>عام</option>
+            <option value="خاص" {{ old('book_type', $entry_statement->book_type ?? '') == 'private' ? 'selected' : '' }}>
+                خاص</option>
+            <option value="عام" {{ old('book_type', $entry_statement->book_type ?? '') == 'public' ? 'selected' : '' }}>
+                عام</option>
         </select>
         @error('book_type') <small class="text-danger">{{ $message }}</small> @enderror
     </div>

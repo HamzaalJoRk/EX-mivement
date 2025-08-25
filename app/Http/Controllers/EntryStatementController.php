@@ -63,21 +63,6 @@ class EntryStatementController extends Controller
         return redirect()->route('entry_statements.show', Crypt::encrypt($entry->id))->with('success', 'تم العثور على البيان.');
     }
 
-    public function addTime(Request $request, $id)
-    {
-        dd($request->all());
-        $entry = EntryStatement::findOrFail($id);
-        $entry->stay_duration = $entry->stay_duration + $request->add_week;
-        if ($request->add_week == 12) {
-            $entry->stay_fee += 200;
-        } else {
-            $entry->stay_fee += 50;
-        }
-        $entry->save();
-        EntryStatementLogHelper::log($entry->id, 'تمديد مدة البقاء', ' تم تمديد المدة وهي: ' . $request->add_week . ' اسابيع' . ' وبرقم تسلسلي: ' . $entry->serial_number);
-        UserLogHelper::log('دفع رسوم', 'رقم الطلب: ' . $entry->serial_number);
-        return redirect()->back()->with('success', 'تم تمديد فترة البقاء بنجاح.');
-    }
 
     public function FinanceExit(Request $request, $id)
     {
@@ -261,6 +246,116 @@ class EntryStatementController extends Controller
 
         return view('dashboard.entry_statements.create', compact('carTypes', 'subCarTypes', 'borderCrossings'));
     }
+
+
+    // public function addTime(Request $request, $id)
+    // {
+    //     dd($request->all());
+    //     $entry = EntryStatement::findOrFail($id);
+    //     if ($request->penalty > 0) {
+
+    //     }
+    //     $entry->stay_duration = $entry->stay_duration + $request->add_week;
+    //     if ($request->add_week == 12) {
+    //         $entry->stay_fee += 200;
+    //     } else {
+    //         $entry->stay_fee += 50;
+    //     }
+    //     $entry->save();
+    //     EntryStatementLogHelper::log($entry->id, 'تمديد مدة البقاء', ' تم تمديد المدة وهي: ' . $request->add_week . ' اسابيع' . ' وبرقم تسلسلي: ' . $entry->serial_number);
+    //     UserLogHelper::log('دفع رسوم', 'رقم الطلب: ' . $entry->serial_number);
+    //     return redirect()->back()->with('success', 'تم تمديد فترة البقاء بنجاح.');
+    // }
+
+
+    public function addTime(Request $request, $id)
+    {
+        try {
+            $oldEntry = EntryStatement::findOrFail($id);
+
+            if ($request->delayDays > 0) {
+                $newDate = now()->toDateString();
+            } else {
+                $newDate = $request->allowedStay;
+            }
+            // dd($newDate);
+
+
+            $data = $oldEntry->toArray();
+            unset(
+                $data['id'],
+                $data['created_at'],
+                $data['updated_at'],
+                $data['is_checked_out'],
+                $data['completeFinanceExit'],
+                $data['checked_out_date'],
+                $data['exit_fee'],
+                $data['exit_border_crossing_id '],
+                $data['is_checked_in'],
+                $data['completeFinanceEntry'],
+            );
+
+            $data['stay_duration'] = $request->add_week;
+
+            $car_type = $oldEntry->car_type;
+
+            switch ($car_type) {
+                case 'سيارات غير السورية والاردنية واللبنانية':
+                    if ($request->add_week == 12) {
+                        $data['stay_fee'] = 200;
+                    } else {
+                        $data['stay_fee'] = 50;
+                    }
+                case 'دراجات نارية':
+                    if ($request->add_week == 12) {
+                        $data['stay_fee'] = 200;
+                    } else {
+                        $data['stay_fee'] = 50;
+                    }
+                    break;
+                case 'شاحنات وباصات خليجية':
+                    $data['stay_fee'] = 50;
+                    break;
+            }
+
+            $newEntry = new EntryStatement($data);
+
+            $newEntry->created_at = $newDate;
+            $newEntry->updated_at = $newDate;
+            $newEntry->save();
+
+            EntryCard::create([
+                'entry_statement_id' => $newEntry->id,
+                'owner_name' => $oldEntry->owner_name ?? 'اسم غير معروف',
+                'car_number' => $oldEntry->car_number,
+                'car_type' => $oldEntry->car_type,
+                'stay_duration' => $request->add_week . ' شهر',
+                'exit_date' => \Carbon\Carbon::parse($newDate)->addMonths($request->add_week)->toDateString(),
+                'entry_date' => $newDate,
+                'qr_code' => null,
+            ]);
+
+            EntryStatementLogHelper::log(
+                $newEntry->id,
+                'إنشاء تمديد',
+                'تم إنشاء حركة جديدة بسبب تمديد المدة: ' . $request->add_week . ' أسابيع بتاريخ: ' . $newDate . ' - رقم تسلسلي: ' . $newEntry->serial_number
+            );
+            UserLogHelper::log('دفع رسوم', 'رقم الطلب: ' . $newEntry->serial_number);
+
+            return redirect()->route('entry_statements.show', Crypt::encrypt($newEntry->id))->with('success', 'تم إنشاء حركة تمديد جديدة بنجاح.');
+        } catch (\Exception $e) {
+            dd($e->getMessage());
+            \Log::error('فشل في إنشاء حركة دخول', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return redirect()->back()->withInput()->with('error', 'حدث خطأ غير متوقع أثناء الإضافة، يرجى المحاولة لاحقاً.');
+        }
+    }
+
 
 
     public function store(EntryStatementRequest $request)

@@ -48,7 +48,7 @@
                     <input type="text" name="border_crossing_id" class="form-control" style="display: none"
                         value="{{ auth()->user()->border_crossing_id }}">
                 @endif
-                <input type="text" name="status" class="form-control" style="display: none" value="خروج">
+                <input type="text" name="type" class="form-control" style="display: none" value="خروج">
                 <div class="col-md-6 mb-2">
                     <label>اسم السائق</label>
                     <input type="text" name="driver_name" class="form-control"

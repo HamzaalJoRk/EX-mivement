@@ -77,10 +77,13 @@
                         <th>نوع السيارة
                             <select id="carTypeFilter" class="form-control form-control-sm">
                                 <option value="">كل الأنواع</option>
-                                <option value="سيارات سورية او اردنية او لبنانية">سيارات سورية او اردنية او لبنانية</option>
-                                <option value="سيارات غير المذكورة">سيارات غير المذكورة</option>
+                                <option value="سيارات غير السورية والاردنية واللبنانية">سيارات غير السورية والاردنية
+                                    واللبنانية</option>
                                 <option value="دراجات نارية">دراجات نارية</option>
                                 <option value="شاحنات وباصات خليجية">شاحنات وباصات خليجية</option>
+                                <option value="سيارات سورية">سيارات سورية</option>
+                                <option value="سيارات لبنانية">سيارات لبنانية</option>
+                                <option value="سيارات أردنية">سيارات أردنية</option>
                             </select>
                         </th>
                         <th>اسم السائق
@@ -157,8 +160,8 @@
                                     <a href="{{ route('entry.logs', $entry->id) }}" class="btn btn-sm btn-info">
                                         سجل التحركات
                                     </a>
-                                    <a href="{{ route('entry_statements.show', $entry->id) }}" class="btn btn-info btn-sm"
-                                        title="عرض">
+                                    <a href="{{ route('entry_statements.show', Crypt::encrypt($entry->id)) }}"
+                                        class="btn btn-info btn-sm" title="عرض">
                                         <i class="fas fa-eye"></i>
                                     </a>
 
@@ -262,7 +265,7 @@
                 var selectedType = $(this).val();
                 table.column(0).search(selectedType).draw();
             });
-            $('#filterCarType').on('keyup', function () {
+            $('#carTypeFilter').on('keyup', function () {
                 table.column(1).search(this.value).draw();
             });
             $('#filterDriverName').on('keyup', function () {
@@ -309,19 +312,19 @@
             Swal.fire({
                 title: 'إجراء مطلوب',
                 html: `
-                                <div>
-                                    <a href="#" class="btn btn-danger btn-sm"
-                                        title="عرض">
-                                        تسجيل خروج
-                                    </a>
-                                </div>
-                                <div class="mt-2">
-                                    <a href="#" class="btn btn-info btn-sm"
-                                        title="عرض">
-                                        تمديد فترة البقاء
-                                    </a>
-                                </div>
-                            `,
+                                    <div>
+                                        <a href="#" class="btn btn-danger btn-sm"
+                                            title="عرض">
+                                            تسجيل خروج
+                                        </a>
+                                    </div>
+                                    <div class="mt-2">
+                                        <a href="#" class="btn btn-info btn-sm"
+                                            title="عرض">
+                                            تمديد فترة البقاء
+                                        </a>
+                                    </div>
+                                `,
                 showCancelButton: true,
                 confirmButtonText: 'تأكيد',
                 cancelButtonText: 'إلغاء',

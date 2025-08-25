@@ -46,7 +46,6 @@
                             <span class="fw-bolder text-success fs-3">{{ number_format($total_exit_dollar, 2) }} دولار</span>
                         </div>
                     </div>
-
                     <div class="card-footer bg-white text-center">
                         <form action="{{ route('entry_statements.FinanceExit', $entry_statement->id) }}" method="POST">
                             @csrf
@@ -177,7 +176,7 @@
                     <a href="{{ route('entry-cards.print', $entry_statement->entryCard->id) }}" target="_blank" class="btn btn-success">
                         <i class="bi bi-printer"></i> طباعة البطاقة
                     </a>
-                    @if ($entry_statement->completeFinanceExit == true)
+                    @if ($entry_statement->completeFinanceExit == true || $delayDays == 0)
                         <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#timeModal">
                             تمديد مدة البقاء
                         </button>
@@ -470,9 +469,11 @@
                 </div>
                 <form action="{{ route('entry_statements.addTime', $entry_statement->id) }}" method="POST">
                     @csrf
-                    @if ($penalty > 0)
-                        <input type="hidden" name="penalty" value="{{ $penalty }}">
-                    @endif
+                    @if ($delayDays > 0)
+                            <input type="hidden" name="delayDays" value="{{ $delayDays }}">
+                        @else
+                            <input type="hidden" name="allowedStay" value="{{ $allowedStay }}">
+                        @endif
                     <div class="modal-body">
                         <div class="mb-3">
                             <label for="violation_id" class="form-label">اختر فترة التمديد</label>

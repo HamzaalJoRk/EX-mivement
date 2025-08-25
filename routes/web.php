@@ -1,7 +1,6 @@
 <?php
 
 use App\Http\Controllers\BorderCrossingController;
-use App\Http\Controllers\Controller;
 use App\Http\Controllers\EntranceFeeController;
 use App\Http\Controllers\EntryCardController;
 use App\Http\Controllers\EntryStatementAdditionalFeeController;
@@ -14,9 +13,7 @@ use App\Http\Controllers\FinancialReceiptController;
 use App\Http\Controllers\LateFeeController;
 use App\Http\Controllers\PrintController;
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\TypeController;
 use App\Http\Controllers\UserController;
-use App\Http\Controllers\ProductController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserLogController;
 use App\Http\Controllers\ViolationController;
@@ -59,7 +56,7 @@ Route::get('/users/edit/{id}', [UserController::class, 'edit'])->name('users.edi
 
 Route::resource('roles', RoleController::class);
 Route::resource('users', UserController::class);
-Route::get('user-create', [UserController::class, 'create_user']);
+Route::get('user-create', [UserController::class, 'create_user']);    
 
 Route::get('/barcode/{code}', function ($code) {
     $generator = new \Picqer\Barcode\BarcodeGeneratorPNG();

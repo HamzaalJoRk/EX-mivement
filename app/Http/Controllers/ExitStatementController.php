@@ -10,6 +10,7 @@ use App\Models\EntryCard;
 use App\Models\ExitStatement;
 use App\Models\EntryStatement;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Crypt;
 
 class ExitStatementController extends Controller
 {
@@ -80,7 +81,7 @@ class ExitStatementController extends Controller
             EntryStatementLogHelper::log($entry->id, 'إنشاء', 'رقم الطلب: #' . $entry->serial_number);
             UserLogHelper::log('انشاء حركة خروج', 'رقم الطلب: ' . $entry->serial_number);
 
-            return redirect()->route('entry_statements.show', $entry->id)
+            return redirect()->route('entry_statements.show', Crypt::encrypt($entry->id))
                 ->with('success', 'تمت الإضافة بنجاح.');
 
         } catch (\Exception $e) {

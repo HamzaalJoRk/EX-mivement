@@ -24,7 +24,6 @@ return new class extends Migration {
             $table->decimal('stay_fee', 8, 2);
             $table->string('serial_number');
             $table->boolean('is_checked_out')->default(0);
-            $table->boolean('has_commitment')->default(0);
             $table->boolean('completeFinanceExit')->default(0);
             $table->date('checked_out_date')->nullable();
             $table->decimal('exit_fee', 8, 2)->nullable();

@@ -164,7 +164,7 @@
             <div class="right">
                 أمانة {{$data->financeBox->user->borderCrossing->name}}<br>
                 بيان تصفية<br>
-                <span id="today-date"></span><br>
+                <span id="today-date2"></span><br>
                 <span style="color: green;">إيصال قبض</span>
             </div>
         </div>
@@ -215,6 +215,7 @@
         const year = today.getFullYear();
         const formattedDate = `${day}/${month}/${year}`;
         document.getElementById('today-date').innerText = formattedDate;
+        document.getElementById('today-date2').innerText = formattedDate;
     </script>
 </body>
 

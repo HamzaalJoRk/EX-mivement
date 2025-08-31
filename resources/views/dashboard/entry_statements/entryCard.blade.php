@@ -214,9 +214,8 @@
         </div>
         <div class="card-body">
             <div class="info">
-                <p><span class="bold">اسم المالك:</span> {{ $entry->driver_name }}</p>
+                <p><span class="bold">اسم السائق:</span> {{ $entry->driver_name }}</p>
                 <p><span class="bold">رقم السيارة:</span> {{ $entry->car_number }}</p>
-
                 <p><span class="bold">مدة البقاء:</span>
                     @php
                         $weeks = $entry->stay_duration;
@@ -235,16 +234,20 @@
                         {{ $weeks }} أسبوع{{ $weeks > 1 ? 'اً' : '' }}
                     @endif
                 </p>
-                <p><span class="bold">المعبر:</span> {{ $entry->borderCrossing->name }}</p>
+                <p><span class="bold">أمانة الدخول:</span> {{ $entry->borderCrossing->name }}</p>
                 <p><span class="bold">نوع السيارة:</span>
-                    @if($entry->car_type === 'شاحنات وباصات خليجية')
-                        شحن
+                    @if($entry->car_type === 'شاحنات وباصات خليجية' || $entry->book_type === 'عام')
+                        عمومي
                     @else
                         سياحي
                     @endif
                 </p>
                 <p><span class="bold">تاريخ الدخول:</span> {{ $createdAt->format('Y-m-d') }}</p>
-                <p><span class="bold">تاريخ الانتهاء:</span> {{ $allowedStay->format('Y-m-d') }}</p>
+                @if (($entry->car_type === 'سيارات سورية') || $entry->car_type === 'سيارات لبنانية' || $entry->car_type === 'سيارات أردنية')
+                    <p><span class="bold">تاريخ الانتهاء:</span> لا يوجد</p>
+                @else
+                    <p><span class="bold">تاريخ الانتهاء:</span> {{ $allowedStay->format('Y-m-d') }}</p>
+                @endif
             </div>
             <div class="qr_imge">
                 {!! QrCode::size(130)->generate($entry->serial_number) !!}
@@ -253,14 +256,14 @@
         </div>
         <div class="footer">
             <span>
-                غرامة تأخير اسبوع بمبلغ وقدره
+                ملاحظة عامة: <br />
+                تأخير اسبوع تعرض صاحبها لغرامة وهي
                 @if($entry->car_type === 'شاحنات وباصات خليجية')
                     15$
                 @else
                     110$
                 @endif
                 (حيث يعامل اليوم معاملة الاسبوع) <br>
-                غرامة ضياع بيان هي 30$
             </span>
         </div>
     </div>

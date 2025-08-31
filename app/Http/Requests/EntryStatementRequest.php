@@ -30,6 +30,7 @@ class EntryStatementRequest extends FormRequest
             'stay_duration' => 'min:0',
             'stay_fee' => 'numeric|min:0',
             'is_checked_out' => 'boolean',
+            'has_commitment' => 'boolean',
             'exit_fee' => 'numeric|min:0',
             'book_number' => 'nullable|max:255',
             'book_type' => 'nullable|max:255',

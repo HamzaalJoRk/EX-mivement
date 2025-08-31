@@ -14,6 +14,7 @@ class EntryStatement extends Model
         'driver_name',
         'car_number',
         'stay_duration',
+        'has_commitment',
         'stay_fee',
         'serial_number',
         'book_type',

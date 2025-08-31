@@ -16,7 +16,20 @@ class EntryCardController extends Controller
         $entry = EntryStatement::findOrFail($entryCard->entry_statement_id);
         $createdAt = Carbon::parse($entry->created_at);
         $weeks = $entry->stay_duration;
-        $allowedStay = $createdAt->copy()->addDays($weeks * 7);
+        $stayDuration = $entry->stay_duration;
+        $stayType = $entry_statement->stay_type ?? 'week';
+        if ($stayDuration == 2) {
+            $stayType = 'week';
+        } else {
+            $stayType = 'month';
+        }
+        // تحديد التاريخ المسموح
+        if ($stayType === 'month') {
+            $allowedStay = $createdAt->copy()->addMonths($stayDuration / 4);
+        } else {
+            $allowedStay = $createdAt->copy()->addDays($stayDuration * 7);
+        }
+        // $allowedStay = $createdAt->copy()->addDays($weeks * 7);
         $today = Carbon::now();
 
         return view('dashboard.entry_statements.entryCard', compact('entry', 'allowedStay', 'createdAt'));

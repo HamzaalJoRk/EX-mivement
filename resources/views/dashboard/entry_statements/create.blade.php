@@ -144,10 +144,12 @@
                                 stayDurationSelect.innerHTML = '';
                                 bookNumberWrapper.style.display = 'block';
                                 bookTypeWrapper.style.display = 'block';
+                                commitmentWrapper.style.display = 'block'; // 👈 إظهار التعهد
                             } else {
                                 stayDurationWrapper.style.display = 'block';
                                 bookNumberWrapper.style.display = 'none';
                                 bookTypeWrapper.style.display = 'none';
+                                commitmentWrapper.style.display = 'none'; // 👈 إخفاء التعهد
 
                                 if (type === 'شاحنات وباصات خليجية') {
                                     updateStayDurations(gulfTruckDurations);
@@ -156,6 +158,9 @@
                                 }
                             }
                         }
+
+                        const commitmentWrapper = document.getElementById('commitment_wrapper');
+
 
                         carTypeSelect.addEventListener('change', function () {
                             toggleFields(this.value);
@@ -166,6 +171,25 @@
                 </script>
 
             @endsection
+            <div class="col-md-6 mb-2" id="commitment_wrapper" style="display: none;">
+                <label class="form-label d-block">يتضمن تعهد</label>
+
+                <input type="hidden" name="has_commitment" value="0">
+
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" 
+                        name="has_commitment" id="has_commitment"
+                        value="1"
+                        {{ old('has_commitment', $entry_statement->has_commitment ?? 0) ? 'checked' : '' }}>
+                    <label class="form-check-label" for="has_commitment">
+                        نعم
+                    </label>
+                </div>
+                @error('has_commitment') 
+                    <small class="text-danger">{{ $message }}</small> 
+                @enderror
+            </div>
+
 
             <button type="submit" class="btn btn-primary mt-1">إنشاء</button>
         </form>

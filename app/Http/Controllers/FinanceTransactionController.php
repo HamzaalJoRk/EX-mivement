@@ -13,7 +13,6 @@ use Carbon\Carbon;
 
 class FinanceTransactionController extends Controller
 {
-
     public function index(Request $request)
     {
         $user = Auth::user();
@@ -64,8 +63,6 @@ class FinanceTransactionController extends Controller
 
     public function boxTransactions(Request $request, FinanceBox $box)
     {
-        // $startDate = $request->input('start_date');
-        // $endDate = $request->input('end_date');
         $startDate = $request->input('start_date', now()->toDateString());
         $endDate = $request->input('end_date', now()->toDateString());
 

@@ -25,7 +25,7 @@
 
         {{-- الكروت --}}
         <div class="row text-center mb-1">
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div class="card bg-success shadow-sm">
                     <div class="card-body">
                         <h6 class="text-white mb-1">المبلغ المستلم</h6>
@@ -33,7 +33,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div class="card border-success shadow-sm">
                     <div class="card-body">
                         <h6 class="mb-1 text-success">مجموع الرسوم</h6>
@@ -41,11 +41,19 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div class="card border-warning shadow-sm">
                     <div class="card-body">
                         <h6 class="mb-1 text-warning">مجموع الغرامات</h6>
                         <h5 class="fw-bold">{{ number_format($totalPenalties + $totalViolations, 2) }} $</h5>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-info shadow-sm">
+                    <div class="card-body">
+                        <h6 class="mb-1 text-info">عدد الإيصالات</h6>
+                        <h5 class="fw-bold">{{ $transactions->count() }}</h5>
                     </div>
                 </div>
             </div>

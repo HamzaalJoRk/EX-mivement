@@ -33,6 +33,10 @@ class FinanceBoxController extends Controller
             return $box;
         });
 
-        return view('dashboard.finance.boxes.index', compact('boxes', 'startDate', 'endDate'));
+        return view('dashboard.finance.boxes.index', compact(
+            'boxes',
+            'startDate',
+            'endDate'
+        ));
     }
 }

@@ -75,67 +75,92 @@
                     @error('car_number') <small class="text-danger">{{ $message }}</small> @enderror
                 </div>
 
-                <!-- <div class="col-md-6 mb-2" id="stay_duration_wrapper">
-                    <label>مدة البقاء</label>
-                    <select name="stay_duration" id="stay_duration" class="form-control">
-                        <option value="">-- اختر مدة البقاء --</option>
-                        <option value="4">شهر - 50$</option>
-                        <option value="12">ثلاث أشهر - 200$</option>
+                <div class="col-md-6 mb-2" id="book_number_wrapper" style="display: none;">
+                    <label>رقم الدفتر</label>
+                    <input type="text" name="book_number" class="form-control"
+                        value="{{ old('book_number', $exit_statement->book_number ?? '') }}">
+                    @error('book_number') <small class="text-danger">{{ $message }}</small> @enderror
+                </div>
+
+                <div class="col-md-6 mb-2" id="book_type_wrapper" style="display: none;">
+                    <label>نوع الدفتر</label>
+                    <select name="book_type" class="form-control">
+                        <option value="">-- اختر نوع الدفتر --</option>
+                        <option value="خاص" {{ old('book_type', $exit_statement->book_type ?? '') == 'خاص' ? 'selected' : '' }}>خاص</option>
+                        <option value="عام" {{ old('book_type', $exit_statement->book_type ?? '') == 'عام' ? 'selected' : '' }}>عام</option>
                     </select>
-                    @error('stay_duration') <small class="text-danger">{{ $message }}</small> @enderror
-                </div> -->
+                    @error('book_type') <small class="text-danger">{{ $message }}</small> @enderror
+                </div>
             </div>
 
             @section('scripts')
-                <script>
-                    document.addEventListener('DOMContentLoaded', function () {
-                        const carTypeSelect = document.getElementById('car_type');
-                        const stayDurationWrapper = document.getElementById('stay_duration_wrapper');
-                        const stayDurationSelect = document.getElementById('stay_duration');
+            <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                const carTypeSelect = document.getElementById('car_type');
 
-                        const hiddenTypes = ['سيارات سورية', 'سيارات لبنانية', 'سيارات أردنية'];
+                const stayDurationWrapper = document.getElementById('stay_duration_wrapper');
+                const stayDurationSelect = document.getElementById('stay_duration');
 
-                        const defaultDurations = [
-                            { value: '4', text: 'شهر - 50$' },
-                            { value: '12', text: 'ثلاث أشهر - 200$' }
-                        ];
+                const bookNumberWrapper = document.getElementById('book_number_wrapper');
+                const bookTypeWrapper = document.getElementById('book_type_wrapper');
+                const commitmentWrapper = document.getElementById('commitment_wrapper');
 
-                        const gulfTruckDurations = [
-                            { value: '2', text: 'أسبوعين - 50$' }
-                        ];
+                const hiddenTypes = ['سيارات سورية', 'سيارات لبنانية', 'سيارات أردنية'];
 
-                        function updateStayDurations(options) {
-                            stayDurationSelect.innerHTML = '<option value="">-- اختر مدة البقاء --</option>';
-                            options.forEach(opt => {
-                                const option = document.createElement('option');
-                                option.value = opt.value;
-                                option.textContent = opt.text;
-                                stayDurationSelect.appendChild(option);
-                            });
-                        }
+                const defaultDurations = [
+                    { value: '4', text: 'شهر - 50$' },
+                    { value: '12', text: 'ثلاث أشهر - 200$' }
+                ];
 
-                        function toggleStayDurationVisibility(type) {
-                            if (hiddenTypes.includes(type)) {
-                                stayDurationWrapper.style.display = 'none';
-                                stayDurationSelect.innerHTML = ''; // Clear options
+                const gulfTruckDurations = [
+                    { value: '2', text: 'أسبوعين - 50$' }
+                ];
+
+                function updateStayDurations(options) {
+                    if (!stayDurationSelect) return; // اذا الحقل مو موجود
+                    stayDurationSelect.innerHTML = '<option value="">-- اختر مدة البقاء --</option>';
+                    options.forEach(opt => {
+                        const option = document.createElement('option');
+                        option.value = opt.value;
+                        option.textContent = opt.text;
+                        stayDurationSelect.appendChild(option);
+                    });
+                }
+
+                function toggleFields(type) {
+                    if (hiddenTypes.includes(type)) {
+                        if (stayDurationWrapper) stayDurationWrapper.style.display = 'none';
+                        if (stayDurationSelect) stayDurationSelect.innerHTML = '';
+
+                        bookNumberWrapper.style.display = 'block';
+                        bookTypeWrapper.style.display = 'block';
+                        commitmentWrapper.style.display = 'block';
+                    } else {
+                        if (stayDurationWrapper) stayDurationWrapper.style.display = 'block';
+
+                        bookNumberWrapper.style.display = 'none';
+                        bookTypeWrapper.style.display = 'none';
+                        commitmentWrapper.style.display = 'none';
+
+                        if (stayDurationSelect) {
+                            if (type === 'شاحنات وباصات خليجية') {
+                                updateStayDurations(gulfTruckDurations);
                             } else {
-                                stayDurationWrapper.style.display = 'block';
-                                if (type === 'شاحنات وباصات خليجية') {
-                                    updateStayDurations(gulfTruckDurations);
-                                } else {
-                                    updateStayDurations(defaultDurations);
-                                }
+                                updateStayDurations(defaultDurations);
                             }
                         }
+                    }
+                }
 
-                        carTypeSelect.addEventListener('change', function () {
-                            toggleStayDurationVisibility(this.value);
-                        });
+                carTypeSelect.addEventListener('change', function () {
+                    toggleFields(this.value);
+                });
 
-                        toggleStayDurationVisibility(carTypeSelect.value);
-                    });
-                </script>
+                toggleFields(carTypeSelect.value); // تشغيل عند التحميل
+            });
+            </script>
             @endsection
+
             <button type="submit" class="btn btn-primary mt-1">إنشاء</button>
         </form>
     </div>

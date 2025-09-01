@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\EntryStatement;
 use App\Models\EntryStatementAdditionalFee;
 use Illuminate\Http\Request;
 
@@ -19,6 +20,17 @@ class EntryStatementAdditionalFeeController extends Controller
             'title' => $request->title,
             'fee' => $request->fee,
         ]);
+
+        $entry = EntryStatement::findOrFail($entryId);
+        // if ($entry->is_checked_in == false && $entry->completeFinanceEntry == true) {
+        //     $entry->completeFinanceEntry = false;
+        // }
+        if ($entry->is_checked_in == true && $entry->completeFinanceExit == true) {
+            $entry->completeFinanceExit = false;
+        } else {
+            $entry->completeFinanceEntry = false;
+        }
+        $entry->save();
 
         return redirect()->back()->with('success', 'تمت إضافة الترسيم بنجاح.');
     }

@@ -129,7 +129,8 @@
                                 </a>
                             </td>
                             <td>
-                                <a href="{{ route('entry_statements.show', $entry->id) }}" style="color: #000;" title="عرض">
+                                <a href="{{ route('entry_statements.show', Crypt::encrypt($entry->id)) }}" style="color: #000;"
+                                    title="عرض">
                                     {{ $entry->driver_name }}
                                 </a>
                             </td>
@@ -165,7 +166,7 @@
                                         <i class="fas fa-eye"></i>
                                     </a>
 
-                                    <a href="{{ route('entry_statements.edit', $entry->id) }}" class="btn btn-primary btn-sm"
+                                    <a href="{{ route('entry_statements.edit', Crypt::encrypt($entry->id)) }}" class="btn btn-primary btn-sm"
                                         title="تعديل">
                                         <i class="fas fa-edit"></i>
                                     </a>
@@ -312,19 +313,19 @@
             Swal.fire({
                 title: 'إجراء مطلوب',
                 html: `
-                                    <div>
-                                        <a href="#" class="btn btn-danger btn-sm"
-                                            title="عرض">
-                                            تسجيل خروج
-                                        </a>
-                                    </div>
-                                    <div class="mt-2">
-                                        <a href="#" class="btn btn-info btn-sm"
-                                            title="عرض">
-                                            تمديد فترة البقاء
-                                        </a>
-                                    </div>
-                                `,
+                                        <div>
+                                            <a href="#" class="btn btn-danger btn-sm"
+                                                title="عرض">
+                                                تسجيل خروج
+                                            </a>
+                                        </div>
+                                        <div class="mt-2">
+                                            <a href="#" class="btn btn-info btn-sm"
+                                                title="عرض">
+                                                تمديد فترة البقاء
+                                            </a>
+                                        </div>
+                                    `,
                 showCancelButton: true,
                 confirmButtonText: 'تأكيد',
                 cancelButtonText: 'إلغاء',

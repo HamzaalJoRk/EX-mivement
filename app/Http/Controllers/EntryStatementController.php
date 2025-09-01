@@ -217,6 +217,15 @@ class EntryStatementController extends Controller
 
         $entry = EntryStatement::findOrFail($id);
         $entry->violations()->attach($request->violation_id);
+        if ($entry->is_checked_in == false && $entry->completeFinanceEntry == true) {
+            $entry->completeFinanceEntry = false;
+        }
+        if ($entry->is_checked_in == true && $entry->completeFinanceExit == true) {
+            $entry->completeFinanceEntry = false;
+        }
+
+        // $entry->completeFinanceExit = false;
+        $entry->save();
         UserLogHelper::log('اضافة مخالفة', 'رقم الطلب: ' . $entry->serial_number);
         EntryStatementLogHelper::log($entry->id, 'اضافة مخالفة', 'رقم الطلب: #' . $entry->serial_number);
 
@@ -246,26 +255,6 @@ class EntryStatementController extends Controller
 
         return view('dashboard.entry_statements.create', compact('carTypes', 'subCarTypes', 'borderCrossings'));
     }
-
-
-    // public function addTime(Request $request, $id)
-    // {
-    //     dd($request->all());
-    //     $entry = EntryStatement::findOrFail($id);
-    //     if ($request->penalty > 0) {
-
-    //     }
-    //     $entry->stay_duration = $entry->stay_duration + $request->add_week;
-    //     if ($request->add_week == 12) {
-    //         $entry->stay_fee += 200;
-    //     } else {
-    //         $entry->stay_fee += 50;
-    //     }
-    //     $entry->save();
-    //     EntryStatementLogHelper::log($entry->id, 'تمديد مدة البقاء', ' تم تمديد المدة وهي: ' . $request->add_week . ' اسابيع' . ' وبرقم تسلسلي: ' . $entry->serial_number);
-    //     UserLogHelper::log('دفع رسوم', 'رقم الطلب: ' . $entry->serial_number);
-    //     return redirect()->back()->with('success', 'تم تمديد فترة البقاء بنجاح.');
-    // }
 
 
     public function addTime(Request $request, $id)
@@ -659,6 +648,7 @@ class EntryStatementController extends Controller
             ->sum('fee');
 
         $penalty = $penaltyPerWeek * $penaltyWeeks;
+
         if ($carType == 'شاحنات وباصات خليجية') {
             $exit_fee = 0;
         } else {
@@ -668,6 +658,8 @@ class EntryStatementController extends Controller
                 $exit_fee = 5;
             }
         }
+
+        // dd($exit_fee);
 
         $violations_total = $unpaidViolations->sum('fee');
         $total_exit_dollar = $exit_fee + $penalty + $violations_total + $additional_fees_total;
@@ -699,8 +691,11 @@ class EntryStatementController extends Controller
         ));
     }
 
-    public function edit(EntryStatement $entryStatement)
+    public function edit($encryptedId)
     {
+
+        $id = Crypt::decrypt($encryptedId);
+        $entryStatement = EntryStatement::findOrFail($id);
         $carTypes = [
             'سيارات سورية',
             'سيارات لبنانية',

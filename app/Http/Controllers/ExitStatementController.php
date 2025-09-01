@@ -52,6 +52,8 @@ class ExitStatementController extends Controller
                 'stay_fee' => 'nullable|numeric|min:0',
                 'is_checked_out' => 'nullable|boolean',
                 'exit_fee' => 'nullable|numeric|min:0',
+                'book_type' => 'nullable',
+                'book_number' => 'nullable',
                 'owner_name' => 'nullable|string|max:255',
                 'type' => 'nullable|string|max:255',
             ]);
@@ -113,8 +115,13 @@ class ExitStatementController extends Controller
             return redirect()->back()->with('error', 'لم يتم العثور على بيانات بهذا الدفتر.');
         }
 
-        return redirect()->route('entry_statements.show', $foundEntry->id)
-            ->with('success', 'تمت الإضافة بنجاح.');
+        // return redirect()->route('entry_statements.show', Crypt::encrypt($foundEntry->id))
+        //     ->with('success', 'تمت الإضافة بنجاح.');
+        return view('dashboard.exit_statements.book_create', [
+            'foundEntry' => $foundEntry,
+            'carTypes' => ['سيارات سورية', 'سيارات لبنانية', 'سيارات أردنية', 'شاحنات وباصات خليجية', 'دراجات نارية'],
+            'borderCrossings' => BorderCrossing::all()
+        ]);
     }
 
 
@@ -122,44 +129,83 @@ class ExitStatementController extends Controller
     {
         $book_number = $request->input('book_number');
         $existing = EntryStatement::where('book_number', $book_number)->firstOrFail();
-        if ($existing->car_type == 'سيارات سورية') {
-            $stay_fee = 0;
-        } else {
-            if ($existing->book_type == 'خاص') {
-                $stay_fee = 10;
-            } elseif ($existing->book_type == 'عام') {
-                $stay_fee = 0;
-            }
+
+        // ناخذ بياناته كمصفوفة
+        $data = $existing->toArray();
+
+        // نعدل القيم المطلوبة
+        $data['stay_fee'] = 0;
+        $data['stay_duration'] = 0;
+        $data['completeFinanceEntry'] = true;
+        $data['is_checked_in'] = true;
+
+        if (empty($data['car_brand'])) {
+            $data['car_brand'] = 'none';
         }
 
-        $newEntry = EntryStatement::create([
-            'car_type' => $existing->car_type,
-            'driver_name' => $existing->driver_name,
-            'car_number' => $existing->car_number,
-            'car_brand' => $existing->car_brand,
-            'car_nationality' => $existing->car_nationality,
-            'book_number' => $existing->book_number,
-            'book_type' => $existing->book_type,
-            'border_crossing_id' => auth()->user()->border_crossing_id,
-            'stay_duration' => $existing->stay_duration,
-            'stay_fee' => $stay_fee,
-            'type' => 'دخول وخروج',
-        ]);
+        // نتأكد نحذف أي مفتاح auto increment أو timestamps لتجنب مشاكل
+        unset($data['id'], $data['created_at'], $data['updated_at']);
+
+        $entry = EntryStatement::create($data);
 
         EntryCard::create([
-            'entry_statement_id' => $newEntry->id,
-            'owner_name' => $existing->driver_name,
-            'car_number' => $existing->car_number,
-            'car_type' => $existing->car_type,
-            'stay_duration' => $existing->stay_duration . 'شهر',
+            'entry_statement_id' => $entry->id,
+            'owner_name' => $data['owner_name'] ?? 'اسم غير معروف',
+            'car_number' => $data['car_number'],
+            'car_type' => $data['car_type'],
+            'stay_duration' => 'لا يوجد',
             'entry_date' => now()->toDateString(),
-            'exit_date' => now()->addMonths($existing->stay_duration ?? 1)->toDateString(),
+            'exit_date' => now()->toDateString(),
             'qr_code' => null,
         ]);
 
-        EntryStatementLogHelper::log($newEntry->id, 'إنشاء', 'رقم الطلب: #' . $newEntry->serial_number);
-        UserLogHelper::log('انشاء حركة دخول جديدة من رقم دفتر', 'رقم الطلب: ' . $newEntry->serial_number);
+        EntryStatementLogHelper::log($entry->id, 'إنشاء', 'رقم الطلب: #' . $entry->serial_number);
+        UserLogHelper::log('انشاء حركة خروج', 'رقم الطلب: ' . $entry->serial_number);
 
-        return redirect()->route('entry_statements.show', $newEntry->id)->with('success', 'تم إنشاء الحركة بنجاح من رقم الدفتر.');
+        return redirect()->route('entry_statements.show', Crypt::encrypt($entry->id))
+            ->with('success', 'تمت الإضافة بنجاح.');
     }
+
+
+
+
+    // if ($existing->car_type == 'سيارات سورية') {
+    //     $stay_fee = 0;
+    // } else {
+    //     if ($existing->book_type == 'خاص') {
+    //         $stay_fee = 10;
+    //     } elseif ($existing->book_type == 'عام') {
+    //         $stay_fee = 0;
+    //     }
+    // }
+
+    // $entry = EntryStatement::create([
+    //     'car_type' => $existing->car_type,
+    //     'driver_name' => $existing->driver_name,
+    //     'car_number' => $existing->car_number,
+    //     'car_brand' => $existing->car_brand,
+    //     'car_nationality' => $existing->car_nationality,
+    //     'book_number' => $existing->book_number,
+    //     'book_type' => $existing->book_type,
+    //     'border_crossing_id' => auth()->user()->border_crossing_id,
+    //     'stay_duration' => $existing->stay_duration,
+    //     'stay_fee' => $stay_fee,
+    //     'type' => 'دخول وخروج',
+    // ]);
+
+    // EntryCard::create([
+    //     'entry_statement_id' => $entry->id,
+    //     'owner_name' => $existing->driver_name,
+    //     'car_number' => $existing->car_number,
+    //     'car_type' => $existing->car_type,
+    //     'stay_duration' => $existing->stay_duration . 'شهر',
+    //     'entry_date' => now()->toDateString(),
+    //     'exit_date' => now()->addMonths($existing->stay_duration ?? 1)->toDateString(),
+    //     'qr_code' => null,
+    // ]);
+
+    // EntryStatementLogHelper::log($entry->id, 'إنشاء', 'رقم الطلب: #' . $entry->serial_number);
+    // UserLogHelper::log('انشاء حركة دخول جديدة من رقم دفتر', 'رقم الطلب: ' . $entry->serial_number);
+
+    // return redirect()->route('entry_statements.show', Crypt::encrypt($entry->id))->with('success', 'تم إنشاء الحركة بنجاح من رقم الدفتر.');
 }

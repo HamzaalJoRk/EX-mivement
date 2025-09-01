@@ -232,7 +232,7 @@
                     </li>
                 @endif
 
-                @if (auth()->user()->hasRole('Admin'))
+                @if (auth()->user()->hasRole('Admin') || auth()->user()->hasRole('CustomEntry') || auth()->user()->hasRole('CustomExit'))
                     <li class="nav-item">
                         <a class="d-flex align-items-center" href="{{ route('dashboard') }}">
                             <i class="fas fa-random me-1"></i>

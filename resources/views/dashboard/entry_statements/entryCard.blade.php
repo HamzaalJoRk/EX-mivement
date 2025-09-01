@@ -216,25 +216,31 @@
             <div class="info">
                 <p><span class="bold">اسم السائق:</span> {{ $entry->driver_name }}</p>
                 <p><span class="bold">رقم السيارة:</span> {{ $entry->car_number }}</p>
-                <p><span class="bold">مدة البقاء:</span>
-                    @php
-                        $weeks = $entry->stay_duration;
-                        $months = floor($weeks / 4);
-                        $remainingWeeks = $weeks % 4;
-                    @endphp
+                @if (!($entry->checked_out_date))
+                    <p><span class="bold">مدة البقاء:</span>
+                        @php
+                            $weeks = $entry->stay_duration;
+                            $months = floor($weeks / 4);
+                            $remainingWeeks = $weeks % 4;
+                        @endphp
 
-                    @if ($weeks >= 4)
-                        {{ $months }} شهر{{ $months > 1 ? 'اً' : '' }}
-                        @if ($remainingWeeks > 0)
-                            و{{ $remainingWeeks }} أسبوع{{ $remainingWeeks > 1 ? 'اً' : '' }}
+                        @if ($weeks >= 4)
+                            {{ $months }} شهر{{ $months > 1 ? 'اً' : '' }}
+                            @if ($remainingWeeks > 0)
+                                و{{ $remainingWeeks }} أسبوع{{ $remainingWeeks > 1 ? 'اً' : '' }}
+                            @endif
+                        @elseif($weeks == 0)
+                            غير محدودة
+                        @else
+                            {{ $weeks }} أسبوع{{ $weeks > 1 ? 'اً' : '' }}
                         @endif
-                    @elseif($weeks == 0)
-                        غير محدودة
-                    @else
-                        {{ $weeks }} أسبوع{{ $weeks > 1 ? 'اً' : '' }}
-                    @endif
-                </p>
-                <p><span class="bold">أمانة الدخول:</span> {{ $entry->borderCrossing->name }}</p>
+                    </p>
+                @endif
+                @if ($entry->checked_out_date)
+                    <p><span class="bold">أمانة الخروج:</span> {{ $entry->exitBorderCrossing->name }}</p>
+                @else
+                    <p><span class="bold">أمانة الدخول:</span> {{ $entry->borderCrossing->name }}</p>
+                @endif
                 <p><span class="bold">نوع السيارة:</span>
                     @if($entry->car_type === 'شاحنات وباصات خليجية' || $entry->book_type === 'عام')
                         عمومي
@@ -242,11 +248,15 @@
                         سياحي
                     @endif
                 </p>
-                <p><span class="bold">تاريخ الدخول:</span> {{ $createdAt->format('Y-m-d') }}</p>
-                @if (($entry->car_type === 'سيارات سورية') || $entry->car_type === 'سيارات لبنانية' || $entry->car_type === 'سيارات أردنية')
-                    <p><span class="bold">تاريخ الانتهاء:</span> لا يوجد</p>
+                @if ($entry->checked_out_date)
+                    <p><span class="bold">تاريخ الخروج:</span> {{ $entry->checked_out_date }}</p>
                 @else
-                    <p><span class="bold">تاريخ الانتهاء:</span> {{ $allowedStay->format('Y-m-d') }}</p>
+                    <p><span class="bold">تاريخ الدخول:</span> {{ $createdAt->format('Y-m-d') }}</p>
+                    @if (($entry->car_type === 'سيارات سورية') || $entry->car_type === 'سيارات لبنانية' || $entry->car_type === 'سيارات أردنية')
+                        <p><span class="bold">تاريخ الانتهاء:</span> لا يوجد</p>
+                    @else
+                        <p><span class="bold">تاريخ الانتهاء:</span> {{ $allowedStay->format('Y-m-d') }}</p>
+                    @endif
                 @endif
             </div>
             <div class="qr_imge">
@@ -256,14 +266,11 @@
         </div>
         <div class="footer">
             <span>
-                ملاحظة عامة: <br />
-                تأخير اسبوع تعرض صاحبها لغرامة وهي
-                @if($entry->car_type === 'شاحنات وباصات خليجية')
-                    15$
-                @else
-                    110$
-                @endif
-                (حيث يعامل اليوم معاملة الاسبوع) <br>
+                <br>
+                <br>
+                <br>
+                تنبيه هام: <br />
+                إن أي تأخير عن المدة المسموح بالبقاء بها يعرض صاحب البطاقة لغرامة تأخير
             </span>
         </div>
     </div>

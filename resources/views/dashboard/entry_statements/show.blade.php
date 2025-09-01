@@ -28,6 +28,10 @@
                                 <span class="fw-bolder text-black fs-4">${{ number_format($exit_fee, 2) }}</span>
                             </li>
                             <li class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="text-dark fw-semibold">رسم اضافي:</span>
+                                <span class="fw-bolder text-black fs-4">${{ number_format($additional_fees_total, 2) }}</span>
+                            </li>
+                            <li class="d-flex justify-content-between align-items-center mb-1">
                                 <span class="text-dark fw-semibold">غرامة التأخير:</span>
                                 <span class="fw-bolder fs-5 {{ $penalty > 0 ? 'text-danger' : 'text-success' }}">
                                     {{ $penalty > 0 ? number_format($penalty, 2) . ' دولار' : 'لا توجد غرامة' }}
@@ -135,14 +139,16 @@
                     @if (!$entry_statement->is_checked_out || !$entry_statement->completeFinanceEntry)
                         @if (auth()->user()->hasRole('Admin') || auth()->user()->hasRole('CustomEntry') || auth()->user()->hasRole('CustomExit'))
                             @if ($entry_statement->completeFinanceEntry == true)
-                                @if($entry_statement->completeFinanceExit)
-                                    <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#checkoutModal">
-                                        تسجيل الخروج لهذه السيارة
-                                    </button>
-                                @else
-                                    <button class="btn btn-danger" disabled>
-                                        لم يتم دفع الرسوم
-                                    </button>
+                                @if (!($entry_statement->checked_out_date))
+                                    @if($entry_statement->completeFinanceExit || $exit_fee == 0 )
+                                        <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#checkoutModal">
+                                            تسجيل الخروج لهذه السيارة
+                                        </button>
+                                    @else
+                                        <button class="btn btn-danger" disabled>
+                                            لم يتم دفع الرسوم
+                                        </button>
+                                    @endif
                                 @endif
                             @endif
                         @endif
@@ -155,14 +161,12 @@
                     <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#ShowViolationsModal">
                         عرض المخالفات
                     </button>
-                    @if ($entry_statement->is_checked_in == 0)
-                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addFeeModal">
-                            إضافة ترسيم
-                        </button>
-                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#showFeeModal">
-                            عرض الترسيمات
-                        </button>
-                    @endif
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addFeeModal">
+                        إضافة ترسيم
+                    </button>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#showFeeModal">
+                        عرض الترسيمات
+                    </button>
                     <a href="{{ route('entry.logs', $entry_statement->id) }}" class="btn btn-info">
                         سجل التحركات
                     </a>
@@ -181,8 +185,13 @@
                             تمديد مدة البقاء
                         </button>
                     @endif
-                    @if (!auth()->user()->hasRole('Finance'))
+                    @if (!auth()->user()->hasRole('Finance') && auth()->user()->hasRole('CustomEntry'))
                     <a href="{{ route('entry_statements.create') }}" class="mb-0 btn btn-outline-light">
+                        <i class="bi bi-arrow-left-circle"></i> تسجيل حركة جديدة
+                    </a>
+                    @endif
+                    @if (!auth()->user()->hasRole('Finance') && auth()->user()->hasRole('CustomExit'))
+                    <a href="/exit-statements/create" class="mb-0 btn btn-outline-light">
                         <i class="bi bi-arrow-left-circle"></i> تسجيل حركة جديدة
                     </a>
                     @endif
@@ -251,14 +260,31 @@
                     <tr>
                         <th class="bg-light">رسم الدخول</th>
                         <td>
-                            {{ number_format($entry_statement->stay_fee, 2) }} $ 
-                            @if ($entry_statement->completeFinanceEntry)
-                                <span style="color: green; font-size: smaller;">تم الدفع</span>
-                            @else
-                                <span style="color: red; font-size: smaller;">لم يتم الدفع</span>
+                            {{ $entry_statement->stay_fee == 0 ? 'لا يوجد' : number_format($entry_statement->stay_fee, 2) . ' $'}}
+                            @if ($entry_statement->stay_fee > 0)
+                                @if ($entry_statement->completeFinanceEntry)
+                                    <span style="color: green; font-size: smaller;">تم الدفع</span>
+                                @else
+                                    <span style="color: red; font-size: smaller;">لم يتم الدفع</span>
+                                @endif
                             @endif
                         </td>
                     </tr>
+                    @if ($entry_statement->completeFinanceEntry)
+                        <tr>
+                            <th class="bg-light">رسم الخروج</th>
+                            <td>
+                                {{ $exit_fee == 0 ? 'لا يوجد' : number_format($exit_fee, 2) . ' $'}}
+                                @if ($exit_fee > 0)
+                                    @if ($entry_statement->completeFinanceExit)
+                                    <span style="color: green; font-size: smaller;">تم الدفع</span>
+                                    @else
+                                    <span style="color: red; font-size: smaller;">لم يتم الدفع</span>
+                                    @endif
+                                @endif
+                            </td>
+                        </tr>
+                    @endif
                     <tr>
                         <th class="bg-light">الرقم التسلسلي</th>
                         <td>{{ $entry_statement->serial_number }}</td>
@@ -269,19 +295,15 @@
                             <td>{{ $entry_statement->is_checked_out == true ? 'نعم' : 'لا' }}</td>
                         </tr>
                         <tr>
-                            <th class="bg-light">رسم الخروج</th>
-                            <td>{{ number_format($exit_fee, 2) }} $</td>
-                        </tr>
-                        <tr>
                             <th class="bg-light">الخروج</th>
                             <td>{{$entry_statement->exitBorderCrossing->name }}</td>
                         </tr>
                     @endif
+                    <tr>
+                        <th class="bg-light">تاريخ الدخول</th>
+                        <td>{{ $createdAt->format('Y-m-d') }}</td>
+                    </tr>
                     @if ($weeks > 0)
-                        <tr>
-                            <th class="bg-light">تاريخ الدخول</th>
-                            <td>{{ $createdAt->format('Y-m-d') }}</td>
-                        </tr>
                         <tr>
                             <th class="bg-light">تاريخ الانتهاء المسموح</th>
                             <td>{{ $allowedStay->format('Y-m-d') }}</td>
@@ -313,11 +335,13 @@
                                 @endif
                             </td>
                         </tr>
-                        <tr>
-                            <th class="bg-light">تاريخ الخروج</th>
-                            <td>{{ $entry_statement->checked_out_date }}</td>
-                        </tr>
-                    @endif
+                        @endif
+                        @if ($entry_statement->checked_out_date)
+                            <tr>
+                                <th class="bg-light">تاريخ الخروج</th>
+                                <td>{{ $entry_statement->checked_out_date }}</td>
+                            </tr>
+                        @endif
                 </table>
             </div>
         </div>

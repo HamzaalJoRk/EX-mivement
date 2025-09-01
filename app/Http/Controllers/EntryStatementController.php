@@ -670,6 +670,8 @@ class EntryStatementController extends Controller
         $violations = Violation::all();
         $borderCrossings = BorderCrossing::all();
 
+        // dd($entry_statement->type);
+
         return view('dashboard.entry_statements.show', compact(
             'entry_statement',
             'createdAt',

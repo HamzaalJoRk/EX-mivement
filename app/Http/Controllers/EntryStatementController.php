@@ -23,14 +23,30 @@ class EntryStatementController extends Controller
         $startDate = $request->input('startDate', now()->toDateString());
         $endDate = $request->input('endDate', now()->toDateString());
 
-        $entries = EntryStatement::whereBetween('created_at', [
+        // Query أساسي بالفترة
+        $query = EntryStatement::whereBetween('created_at', [
             $startDate . ' 00:00:00',
             $endDate . ' 23:59:59'
-        ])->orderBy('created_at', 'desc')->get();
+        ])->orderBy('created_at', 'desc');
 
-        $totalEntryFee = $entries->sum('stay_fee');
-        $totalExitFee = $entries->sum('exit_fee');
-        $entryCount = $entries->count();
+        // اجلب البيانات مع الباجينيشن (مثلاً 20 بالصفحة)
+        $entries = $query->paginate(10);
+
+        // احسب الإجماليات مباشرة من الداتابيس (أسرع من الكولكشن)
+        $totalEntryFee = EntryStatement::whereBetween('created_at', [
+            $startDate . ' 00:00:00',
+            $endDate . ' 23:59:59'
+        ])->sum('stay_fee');
+
+        $totalExitFee = EntryStatement::whereBetween('created_at', [
+            $startDate . ' 00:00:00',
+            $endDate . ' 23:59:59'
+        ])->sum('exit_fee');
+
+        $entryCount = EntryStatement::whereBetween('created_at', [
+            $startDate . ' 00:00:00',
+            $endDate . ' 23:59:59'
+        ])->count();
 
         return view('dashboard.entry_statements.index', [
             'entries' => $entries,
@@ -41,6 +57,7 @@ class EntryStatementController extends Controller
             'endDate' => $endDate,
         ]);
     }
+
 
     public function entrySearch()
     {

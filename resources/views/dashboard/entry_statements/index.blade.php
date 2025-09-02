@@ -166,8 +166,8 @@
                                         <i class="fas fa-eye"></i>
                                     </a>
 
-                                    <a href="{{ route('entry_statements.edit', Crypt::encrypt($entry->id)) }}" class="btn btn-primary btn-sm"
-                                        title="تعديل">
+                                    <a href="{{ route('entry_statements.edit', Crypt::encrypt($entry->id)) }}"
+                                        class="btn btn-primary btn-sm" title="تعديل">
                                         <i class="fas fa-edit"></i>
                                     </a>
 
@@ -187,6 +187,9 @@
                     @endforeach
                 </tbody>
             </table>
+            <div class="d-flex justify-content-start mt-1">
+                    {{ $entries->appends(request()->input())->links('pagination::bootstrap-4') }}
+            </div>
         </div>
     </div>
 @endsection
@@ -206,136 +209,115 @@
     <script>
         $(document).ready(function () {
             var table = $('#entryTable').DataTable({
-                dom: 'Bfrtip',
-                ordering: false,
-                responsive: false,
-                autoWidth: false,
-                ordering: false,
-                scrollX: true,
-                buttons: [
-                    {
-                        extend: 'copy',
-                        text: '<i class="fas fa-copy"></i> نسخ',
-                        exportOptions: {
-                            columns: ':not(:last-child)'
+                var table = $('#entryTable').DataTable({
+                    dom: 'Bfrtip',
+                    paging: false,            // 🚫 إلغاء الباجينيشن تبع DataTables
+                    info: false,              // 🚫 إخفاء "عرض 1 إلى 10 من..."
+                    ordering: false,
+                    searching: false,         // 🚫 إلغاء البحث العام (نستخدم فقط الفلاتر اللي فوق الأعمدة)
+                    scrollX: true,
+                    autoWidth: false,
+                    buttons: [
+                        {
+                            extend: 'copy',
+                            text: '<i class="fas fa-copy"></i> نسخ',
+                            exportOptions: { columns: ':not(:last-child)' },
+                            className: 'btn btn-sm shadow-sm rounded'
                         },
-                        className: 'btn btn-sm shadow-sm rounded'
-                    },
-                    {
-                        extend: 'excel',
-                        text: '<i class="fas fa-file-excel"></i> Excel',
-                        title: 'قائمة حركات الدخول - التاريخ: ' + new Date().toLocaleDateString('en-US'),
-                        exportOptions: {
-                            columns: ':not(:last-child)'
+                        {
+                            extend: 'excel',
+                            text: '<i class="fas fa-file-excel"></i> Excel',
+                            title: 'قائمة حركات الدخول - التاريخ: ' + new Date().toLocaleDateString('en-US'),
+                            exportOptions: { columns: ':not(:last-child)' },
+                            className: 'btn btn-sm shadow-sm rounded'
                         },
-                        className: 'btn btn-sm shadow-sm rounded'
-                    },
-                    {
-                        extend: 'print',
-                        text: '<i class="fas fa-print"></i> طباعة',
-                        title: 'قائمة حركات الدخول - التاريخ: ' + new Date().toLocaleDateString('en-US'),
-                        exportOptions: {
-                            columns: ':not(:last-child)'
-                        },
-                        className: 'btn btn-sm shadow-sm rounded'
+                        {
+                            extend: 'print',
+                            text: '<i class="fas fa-print"></i> طباعة',
+                            title: 'قائمة حركات الدخول - التاريخ: ' + new Date().toLocaleDateString('en-US'),
+                            exportOptions: { columns: ':not(:last-child)' },
+                            className: 'btn btn-sm shadow-sm rounded'
+                        }
+                    ],
+                    language: {
+                        url: "//cdn.datatables.net/plug-ins/1.13.6/i18n/ar.json"
                     }
-                ],
+                });
 
-                language: {
-                    url: "//cdn.datatables.net/plug-ins/1.13.6/i18n/ar.json"
-                },
-                initComplete: function () {
-                    $('#entryTable_wrapper').css({
-                        'direction': 'rtl',
-                        'text-align': 'right'
-                    });
-
-                    $('#entryTable thead th').css({
-                        'direction': 'rtl',
-                        'text-align': 'right'
-                    });
-
-                    $('#entryTable tbody td').css({
-                        'direction': 'rtl',
-                        'text-align': 'right'
-                    });
-                }
+                $('#filterSerialNumber').on('change', function () {
+                    var selectedType = $(this).val();
+                    table.column(0).search(selectedType).draw();
+                });
+                $('#carTypeFilter').on('keyup', function () {
+                    table.column(1).search(this.value).draw();
+                });
+                $('#filterDriverName').on('keyup', function () {
+                    table.column(2).search(this.value).draw();
+                });
+                $('#filterCarNumber').on('keyup', function () {
+                    table.column(3).search(this.value).draw();
+                });
+                $('#filterStayDuration').on('keyup', function () {
+                    table.column(4).search(this.value).draw();
+                });
+                $('#filterStayFee').on('keyup', function () {
+                    table.column(5).search(this.value).draw();
+                });
+                $('#filterCheckedOut').on('keyup', function () {
+                    table.column(6).search(this.value).draw();
+                });
+                $('#filterBookNumber').on('keyup', function () {
+                    table.column(8).search(this.value).draw();
+                });
+                $('#filterExitFee').on('keyup', function () {
+                    table.column(7).search(this.value).draw();
+                });
             });
 
-            $('#filterSerialNumber').on('change', function () {
-                var selectedType = $(this).val();
-                table.column(0).search(selectedType).draw();
-            });
-            $('#carTypeFilter').on('keyup', function () {
-                table.column(1).search(this.value).draw();
-            });
-            $('#filterDriverName').on('keyup', function () {
-                table.column(2).search(this.value).draw();
-            });
-            $('#filterCarNumber').on('keyup', function () {
-                table.column(3).search(this.value).draw();
-            });
-            $('#filterStayDuration').on('keyup', function () {
-                table.column(4).search(this.value).draw();
-            });
-            $('#filterStayFee').on('keyup', function () {
-                table.column(5).search(this.value).draw();
-            });
-            $('#filterCheckedOut').on('keyup', function () {
-                table.column(6).search(this.value).draw();
-            });
-            $('#filterBookNumber').on('keyup', function () {
-                table.column(8).search(this.value).draw();
-            });
-            $('#filterExitFee').on('keyup', function () {
-                table.column(7).search(this.value).draw();
-            });
-        });
+            function confirmDelete(id) {
+                Swal.fire({
+                    title: 'هل أنت متأكد؟',
+                    text: "لا يمكن التراجع بعد الحذف!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'نعم، احذف',
+                    cancelButtonText: 'إلغاء'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        document.getElementById(`delete-form-${id}`).submit();
+                    }
+                });
+            }
 
-        function confirmDelete(id) {
-            Swal.fire({
-                title: 'هل أنت متأكد؟',
-                text: "لا يمكن التراجع بعد الحذف!",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#3085d6',
-                confirmButtonText: 'نعم، احذف',
-                cancelButtonText: 'إلغاء'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    document.getElementById(`delete-form-${id}`).submit();
-                }
-            });
-        }
-
-        function openModal(entryId) {
-            Swal.fire({
-                title: 'إجراء مطلوب',
-                html: `
-                                        <div>
-                                            <a href="#" class="btn btn-danger btn-sm"
-                                                title="عرض">
-                                                تسجيل خروج
-                                            </a>
-                                        </div>
-                                        <div class="mt-2">
-                                            <a href="#" class="btn btn-info btn-sm"
-                                                title="عرض">
-                                                تمديد فترة البقاء
-                                            </a>
-                                        </div>
-                                    `,
-                showCancelButton: true,
-                confirmButtonText: 'تأكيد',
-                cancelButtonText: 'إلغاء',
-                preConfirm: () => {
-                    const exitFee = document.getElementById('exitFee').value;
-                    const stayDuration = document.getElementById('stayDuration').value;
-                    console.log('إدخال رسم الخروج:', exitFee, 'مدة البقاء:', stayDuration);
-                }
-            });
-        }
+            function openModal(entryId) {
+                Swal.fire({
+                    title: 'إجراء مطلوب',
+                    html: `
+                                                    <div>
+                                                        <a href="#" class="btn btn-danger btn-sm"
+                                                            title="عرض">
+                                                            تسجيل خروج
+                                                        </a>
+                                                    </div>
+                                                    <div class="mt-2">
+                                                        <a href="#" class="btn btn-info btn-sm"
+                                                            title="عرض">
+                                                            تمديد فترة البقاء
+                                                        </a>
+                                                    </div>
+                                                `,
+                    showCancelButton: true,
+                    confirmButtonText: 'تأكيد',
+                    cancelButtonText: 'إلغاء',
+                    preConfirm: () => {
+                        const exitFee = document.getElementById('exitFee').value;
+                        const stayDuration = document.getElementById('stayDuration').value;
+                        console.log('إدخال رسم الخروج:', exitFee, 'مدة البقاء:', stayDuration);
+                    }
+                });
+            }
     </script>
 @endsection
 

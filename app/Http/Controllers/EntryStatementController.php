@@ -223,6 +223,8 @@ class EntryStatementController extends Controller
         } else {
             $entry->exit_border_crossing_id = auth()->user()->border_crossing_id;
         }
+
+        $entry->completeFinanceExit = true;
         $entry->save();
         EntryStatementLogHelper::log($entry->id, 'تسجيل خروج', 'رقم الطلب: #' . $entry->serial_number);
         UserLogHelper::log('حركة خروج', 'رقم الطلب: ' . $entry->serial_number);

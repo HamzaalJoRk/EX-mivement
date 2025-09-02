@@ -354,8 +354,11 @@ class EntryStatementController extends Controller
                     $validated['stay_fee'] = 50;
                     break;
                 case 'سيارات سورية':
-                    $validated['stay_fee'] = 0;
-                    $validated['completeFinanceEntry'] = 1;
+                    if ($validated['has_commitment']) {
+                        $validated['stay_fee'] = 15;
+                    } else {
+                        $validated['stay_fee'] = 0;
+                    }
                     $validated['stay_duration'] = 0;
                     break;
                 case 'سيارات لبنانية':

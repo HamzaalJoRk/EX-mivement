@@ -65,7 +65,7 @@
                                         ✅ تأكيد الدفع
                                     </button>
                                 @else
-                                    <button type="submit" class="btn btn-success w-100 fw-bold py-1 rounded-pill" target="_blank">
+                                    <button type="submit" class="btn btn-success w-100 fw-bold py-1 rounded-pill" onclick="location.reload();" target="_blank">
                                         ✅ تأكيد الدفع
                                     </button>
                                 @endif
@@ -120,7 +120,7 @@
                             <input type="hidden" name="total_entry_dollar" value="{{ $total_entry_dollar }}">
                             <input type="hidden" name="additional_fees_total" value="{{ $additional_fees_total }}">
                             @if (auth()->user()->hasRole('Finance'))
-                                <button type="submit" class="btn btn-success w-100 fw-bold py-1 rounded-pill" target="_blank">
+                                <button type="submit" class="btn btn-success w-100 fw-bold py-1 rounded-pill" onclick="location.reload();" target="_blank">
                                     ✅ تأكيد الدفع
                                 </button>
                             @else

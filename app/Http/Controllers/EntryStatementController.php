@@ -217,14 +217,6 @@ class EntryStatementController extends Controller
 
         $entry = EntryStatement::findOrFail($id);
         $entry->violations()->attach($request->violation_id);
-        if ($entry->is_checked_in == false && $entry->completeFinanceEntry == true) {
-            $entry->completeFinanceEntry = false;
-        }
-        if ($entry->is_checked_in == true && $entry->completeFinanceExit == true) {
-            $entry->completeFinanceEntry = false;
-        }
-
-        // $entry->completeFinanceExit = false;
         $entry->save();
         UserLogHelper::log('اضافة مخالفة', 'رقم الطلب: ' . $entry->serial_number);
         EntryStatementLogHelper::log($entry->id, 'اضافة مخالفة', 'رقم الطلب: #' . $entry->serial_number);

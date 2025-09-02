@@ -209,12 +209,9 @@
     <script>
         $(document).ready(function () {
             var table = $('#entryTable').DataTable({
-                var table = $('#entryTable').DataTable({
                     dom: 'Bfrtip',
-                    paging: false,            // 🚫 إلغاء الباجينيشن تبع DataTables
-                    info: false,              // 🚫 إخفاء "عرض 1 إلى 10 من..."
+                    paging: false,
                     ordering: false,
-                    searching: false,         // 🚫 إلغاء البحث العام (نستخدم فقط الفلاتر اللي فوق الأعمدة)
                     scrollX: true,
                     autoWidth: false,
                     buttons: [

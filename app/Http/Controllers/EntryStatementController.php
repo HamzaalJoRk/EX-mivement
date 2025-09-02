@@ -355,7 +355,7 @@ class EntryStatementController extends Controller
                     break;
                 case 'سيارات سورية':
                     if ($validated['has_commitment']) {
-                        $validated['stay_fee'] = 15;
+                        $validated['stay_fee'] = 5;
                     } else {
                         $validated['stay_fee'] = 0;
                     }

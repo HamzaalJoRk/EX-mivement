@@ -358,6 +358,7 @@ class EntryStatementController extends Controller
                         $validated['stay_fee'] = 5;
                     } else {
                         $validated['stay_fee'] = 0;
+                        $validated['completeFinanceEntry'] = 1;
                     }
                     $validated['stay_duration'] = 0;
                     break;

@@ -58,6 +58,26 @@ class ExitStatementController extends Controller
                 'type' => 'nullable|string|max:255',
             ]);
 
+            $car_type = $validated['car_type'];
+
+            switch ($car_type) {
+                case 'سيارات سورية':
+                    if ($validated['book_type'] == 'عام') {
+                        $validated['completeFinanceExit'] = 1;
+                    }
+                    break;
+                case 'سيارات لبنانية':
+                    if ($validated['book_type'] == 'عام') {
+                        $validated['completeFinanceExit'] = 1;
+                    }
+                    break;
+                case 'سيارات أردنية':
+                    if ($validated['book_type'] == 'عام') {
+                        $validated['completeFinanceExit'] = 1;
+                    }
+                    break;
+            }
+
             $validated['stay_fee'] = 0;
             $validated['stay_duration'] = 0;
             $validated['completeFinanceEntry'] = true;

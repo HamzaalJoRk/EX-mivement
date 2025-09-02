@@ -65,6 +65,16 @@
             </script>
         @endif
 
+        <form method="GET" action="{{ route('entry_statements.index') }}" class="form-inline d-inline">
+            <input type="hidden" name="startDate" value="{{ $startDate }}">
+            <input type="hidden" name="endDate" value="{{ $endDate }}">
+            <div class="form-group mr-2">
+                <input type="text" name="search" class="form-control" placeholder="بحث عام" value="{{ request('search') }}">
+            </div>
+            <button type="submit" class="btn btn-primary">بحث</button>
+        </form>
+
+
         <div class="table-responsive" style="overflow-x: auto; white-space: nowrap;">
             <table id="entryTable" class="table table-bordered table-striped w-100"
                 style="direction: rtl; text-align: right;">
@@ -187,8 +197,14 @@
                     @endforeach
                 </tbody>
             </table>
-            <div class="d-flex justify-content-start mt-1">
+            <div class="d-flex justify-content-between align-items-center mt-2">
+                <div>
+                    عرض {{ $entries->firstItem() }} إلى {{ $entries->lastItem() }}
+                    من أصل {{ $entries->total() }} بيانات
+                </div>
+                <div>
                     {{ $entries->appends(request()->input())->links('pagination::bootstrap-4') }}
+                </div>
             </div>
         </div>
     </div>
@@ -209,112 +225,114 @@
     <script>
         $(document).ready(function () {
             var table = $('#entryTable').DataTable({
-                    dom: 'Bfrtip',
-                    paging: false,
-                    ordering: false,
-                    scrollX: true,
-                    autoWidth: false,
-                    buttons: [
-                        {
-                            extend: 'copy',
-                            text: '<i class="fas fa-copy"></i> نسخ',
-                            exportOptions: { columns: ':not(:last-child)' },
-                            className: 'btn btn-sm shadow-sm rounded'
-                        },
-                        {
-                            extend: 'excel',
-                            text: '<i class="fas fa-file-excel"></i> Excel',
-                            title: 'قائمة حركات الدخول - التاريخ: ' + new Date().toLocaleDateString('en-US'),
-                            exportOptions: { columns: ':not(:last-child)' },
-                            className: 'btn btn-sm shadow-sm rounded'
-                        },
-                        {
-                            extend: 'print',
-                            text: '<i class="fas fa-print"></i> طباعة',
-                            title: 'قائمة حركات الدخول - التاريخ: ' + new Date().toLocaleDateString('en-US'),
-                            exportOptions: { columns: ':not(:last-child)' },
-                            className: 'btn btn-sm shadow-sm rounded'
-                        }
-                    ],
-                    language: {
-                        url: "//cdn.datatables.net/plug-ins/1.13.6/i18n/ar.json"
+                dom: 'Bfrtip',
+                paging: false,
+                ordering: false,       
+                info: false,
+                scrollX: true,
+                autoWidth: false,
+                searching: false,
+                buttons: [
+                    {
+                        extend: 'copy',
+                        text: '<i class="fas fa-copy"></i> نسخ',
+                        exportOptions: { columns: ':not(:last-child)' },
+                        className: 'btn btn-sm shadow-sm rounded'
+                    },
+                    {
+                        extend: 'excel',
+                        text: '<i class="fas fa-file-excel"></i> Excel',
+                        title: 'قائمة حركات الدخول - التاريخ: ' + new Date().toLocaleDateString('en-US'),
+                        exportOptions: { columns: ':not(:last-child)' },
+                        className: 'btn btn-sm shadow-sm rounded'
+                    },
+                    {
+                        extend: 'print',
+                        text: '<i class="fas fa-print"></i> طباعة',
+                        title: 'قائمة حركات الدخول - التاريخ: ' + new Date().toLocaleDateString('en-US'),
+                        exportOptions: { columns: ':not(:last-child)' },
+                        className: 'btn btn-sm shadow-sm rounded'
                     }
-                });
-
-                $('#filterSerialNumber').on('change', function () {
-                    var selectedType = $(this).val();
-                    table.column(0).search(selectedType).draw();
-                });
-                $('#carTypeFilter').on('keyup', function () {
-                    table.column(1).search(this.value).draw();
-                });
-                $('#filterDriverName').on('keyup', function () {
-                    table.column(2).search(this.value).draw();
-                });
-                $('#filterCarNumber').on('keyup', function () {
-                    table.column(3).search(this.value).draw();
-                });
-                $('#filterStayDuration').on('keyup', function () {
-                    table.column(4).search(this.value).draw();
-                });
-                $('#filterStayFee').on('keyup', function () {
-                    table.column(5).search(this.value).draw();
-                });
-                $('#filterCheckedOut').on('keyup', function () {
-                    table.column(6).search(this.value).draw();
-                });
-                $('#filterBookNumber').on('keyup', function () {
-                    table.column(8).search(this.value).draw();
-                });
-                $('#filterExitFee').on('keyup', function () {
-                    table.column(7).search(this.value).draw();
-                });
+                ],
+                language: {
+                    url: "//cdn.datatables.net/plug-ins/1.13.6/i18n/ar.json"
+                }
             });
 
-            function confirmDelete(id) {
-                Swal.fire({
-                    title: 'هل أنت متأكد؟',
-                    text: "لا يمكن التراجع بعد الحذف!",
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#d33',
-                    cancelButtonColor: '#3085d6',
-                    confirmButtonText: 'نعم، احذف',
-                    cancelButtonText: 'إلغاء'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        document.getElementById(`delete-form-${id}`).submit();
-                    }
-                });
-            }
+            $('#filterSerialNumber').on('change', function () {
+                var selectedType = $(this).val();
+                table.column(0).search(selectedType).draw();
+            });
+            $('#carTypeFilter').on('keyup', function () {
+                table.column(1).search(this.value).draw();
+            });
+            $('#filterDriverName').on('keyup', function () {
+                table.column(2).search(this.value).draw();
+            });
+            $('#filterCarNumber').on('keyup', function () {
+                table.column(3).search(this.value).draw();
+            });
+            $('#filterStayDuration').on('keyup', function () {
+                table.column(4).search(this.value).draw();
+            });
+            $('#filterStayFee').on('keyup', function () {
+                table.column(5).search(this.value).draw();
+            });
+            $('#filterCheckedOut').on('keyup', function () {
+                table.column(6).search(this.value).draw();
+            });
+            $('#filterBookNumber').on('keyup', function () {
+                table.column(8).search(this.value).draw();
+            });
+            $('#filterExitFee').on('keyup', function () {
+                table.column(7).search(this.value).draw();
+            });
+        });
 
-            function openModal(entryId) {
-                Swal.fire({
-                    title: 'إجراء مطلوب',
-                    html: `
-                                                    <div>
-                                                        <a href="#" class="btn btn-danger btn-sm"
-                                                            title="عرض">
-                                                            تسجيل خروج
-                                                        </a>
-                                                    </div>
-                                                    <div class="mt-2">
-                                                        <a href="#" class="btn btn-info btn-sm"
-                                                            title="عرض">
-                                                            تمديد فترة البقاء
-                                                        </a>
-                                                    </div>
-                                                `,
-                    showCancelButton: true,
-                    confirmButtonText: 'تأكيد',
-                    cancelButtonText: 'إلغاء',
-                    preConfirm: () => {
-                        const exitFee = document.getElementById('exitFee').value;
-                        const stayDuration = document.getElementById('stayDuration').value;
-                        console.log('إدخال رسم الخروج:', exitFee, 'مدة البقاء:', stayDuration);
-                    }
-                });
-            }
+        function confirmDelete(id) {
+            Swal.fire({
+                title: 'هل أنت متأكد؟',
+                text: "لا يمكن التراجع بعد الحذف!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'نعم، احذف',
+                cancelButtonText: 'إلغاء'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById(`delete-form-${id}`).submit();
+                }
+            });
+        }
+
+        function openModal(entryId) {
+            Swal.fire({
+                title: 'إجراء مطلوب',
+                html: `
+                                                                <div>
+                                                                    <a href="#" class="btn btn-danger btn-sm"
+                                                                        title="عرض">
+                                                                        تسجيل خروج
+                                                                    </a>
+                                                                </div>
+                                                                <div class="mt-2">
+                                                                    <a href="#" class="btn btn-info btn-sm"
+                                                                        title="عرض">
+                                                                        تمديد فترة البقاء
+                                                                    </a>
+                                                                </div>
+                                                            `,
+                showCancelButton: true,
+                confirmButtonText: 'تأكيد',
+                cancelButtonText: 'إلغاء',
+                preConfirm: () => {
+                    const exitFee = document.getElementById('exitFee').value;
+                    const stayDuration = document.getElementById('stayDuration').value;
+                    console.log('إدخال رسم الخروج:', exitFee, 'مدة البقاء:', stayDuration);
+                }
+            });
+        }
     </script>
 @endsection
 

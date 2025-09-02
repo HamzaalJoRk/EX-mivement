@@ -22,6 +22,7 @@ class EntryStatementController extends Controller
     {
         $startDate = $request->input('startDate', now()->toDateString());
         $endDate = $request->input('endDate', now()->toDateString());
+        $search = $request->input('search');
 
         // Query أساسي بالفترة
         $query = EntryStatement::whereBetween('created_at', [
@@ -29,24 +30,24 @@ class EntryStatementController extends Controller
             $endDate . ' 23:59:59'
         ])->orderBy('created_at', 'desc');
 
-        // اجلب البيانات مع الباجينيشن (مثلاً 20 بالصفحة)
-        $entries = $query->paginate(10);
+        // فلترة بالبحث
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('serial_number', 'like', "%$search%")
+                    ->orWhere('car_type', 'like', "%$search%")
+                    ->orWhere('driver_name', 'like', "%$search%")
+                    ->orWhere('car_number', 'like', "%$search%")
+                    ->orWhere('book_number', 'like', "%$search%");
+            });
+        }
 
-        // احسب الإجماليات مباشرة من الداتابيس (أسرع من الكولكشن)
-        $totalEntryFee = EntryStatement::whereBetween('created_at', [
-            $startDate . ' 00:00:00',
-            $endDate . ' 23:59:59'
-        ])->sum('stay_fee');
+        // باجينشن
+        $entries = $query->paginate(10)->appends($request->all());
 
-        $totalExitFee = EntryStatement::whereBetween('created_at', [
-            $startDate . ' 00:00:00',
-            $endDate . ' 23:59:59'
-        ])->sum('exit_fee');
-
-        $entryCount = EntryStatement::whereBetween('created_at', [
-            $startDate . ' 00:00:00',
-            $endDate . ' 23:59:59'
-        ])->count();
+        // احصائيات
+        $totalEntryFee = $query->sum('stay_fee');
+        $totalExitFee = $query->sum('exit_fee');
+        $entryCount = $query->count();
 
         return view('dashboard.entry_statements.index', [
             'entries' => $entries,
@@ -55,8 +56,10 @@ class EntryStatementController extends Controller
             'entryCount' => $entryCount,
             'startDate' => $startDate,
             'endDate' => $endDate,
+            'search' => $search,
         ]);
     }
+
 
 
     public function entrySearch()

@@ -139,11 +139,17 @@
                     @if (!$entry_statement->is_checked_out || !$entry_statement->completeFinanceEntry)
                         @if (auth()->user()->hasRole('Admin') || auth()->user()->hasRole('CustomEntry') || auth()->user()->hasRole('CustomExit'))
                             @if ($entry_statement->completeFinanceEntry == true)
-                                @if (!($entry_statement->checked_out_date))
-                                    @if($entry_statement->completeFinanceExit || $exit_fee == 0 )
-                                        <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#checkoutModal">
-                                            تسجيل الخروج لهذه السيارة
-                                        </button>
+                                @if (!($entry_statement->checked_out_date) )
+                                    @if(($entry_statement->completeFinanceExit == 0 || $exit_fee == 0) && $total_exit_dollar == 0)
+                                        @if ( $entry_statement->is_checked_in )
+                                            <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#checkoutModal">
+                                                تسجيل الخروج لهذه السيارة
+                                            </button>
+                                        @else
+                                            <button class="btn btn-danger" disabled>
+                                                لم يتم دخول السيارة بعد
+                                            </button>
+                                        @endif
                                     @else
                                         <button class="btn btn-danger" disabled>
                                             لم يتم دفع الرسوم

@@ -73,7 +73,7 @@ class EntryStatementController extends Controller
         if (!$entry) {
             return redirect()->back()->with('error', 'لم يتم العثور على البيان.');
         }
-        if (auth()->user()->hasRole('Finance') && $entry->completeFinanceExit == 1) {
+        if (auth()->user()->hasRole('Finance') && $entry->completeFinanceExit == 1 && $entry->is_checked_in) {
             return redirect()->back()->with('error', 'تم دفع رسوم الخروج.');
         }
         if (auth()->user()->hasRole('Finance') && $entry->completeFinanceEntry && !$entry->is_checked_in) {
@@ -239,6 +239,12 @@ class EntryStatementController extends Controller
 
         $entry = EntryStatement::findOrFail($id);
         $entry->violations()->attach($request->violation_id);
+        if ($entry->is_checked_in) {
+            $entry->completeFinanceExit = 0;
+        } else {
+            $entry->completeFinanceEntry = 0;
+            $entry->stay_fee = 0;
+        }
         $entry->save();
         UserLogHelper::log('اضافة مخالفة', 'رقم الطلب: ' . $entry->serial_number);
         EntryStatementLogHelper::log($entry->id, 'اضافة مخالفة', 'رقم الطلب: #' . $entry->serial_number);
@@ -381,6 +387,7 @@ class EntryStatementController extends Controller
                     } else {
                         $validated['stay_fee'] = 0;
                         $validated['completeFinanceEntry'] = 1;
+                        $validated['completeFinanceExit'] = 1;
                     }
                     $validated['stay_duration'] = 0;
                     break;
@@ -398,6 +405,7 @@ class EntryStatementController extends Controller
                             $validated['stay_fee'] = 0;
                             $validated['stay_duration'] = 0;
                             $validated['completeFinanceEntry'] = 1;
+                            $validated['completeFinanceExit'] = 1;
                         }
                     } else {
                         if ($validated['book_type'] == 'خاص') {
@@ -411,6 +419,7 @@ class EntryStatementController extends Controller
                             $validated['stay_fee'] = 0;
                             $validated['stay_duration'] = 0;
                             $validated['completeFinanceEntry'] = 1;
+                            $validated['completeFinanceExit'] = 1;
                         }
                     }
                     break;
@@ -428,6 +437,7 @@ class EntryStatementController extends Controller
                             $validated['stay_fee'] = 0;
                             $validated['stay_duration'] = 0;
                             $validated['completeFinanceEntry'] = 1;
+                            $validated['completeFinanceExit'] = 1;
                         }
                     } else {
                         if ($validated['book_type'] == 'خاص') {
@@ -441,6 +451,7 @@ class EntryStatementController extends Controller
                             $validated['stay_fee'] = 0;
                             $validated['stay_duration'] = 0;
                             $validated['completeFinanceEntry'] = 1;
+                            $validated['completeFinanceExit'] = 1;
                         }
                     }
                     break;

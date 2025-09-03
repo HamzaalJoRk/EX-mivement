@@ -22,6 +22,12 @@ class EntryStatementAdditionalFeeController extends Controller
         ]);
 
         $entry = EntryStatement::findOrFail($entryId);
+        if ( $entry->is_checked_in) {
+            $entry->completeFinanceExit = 0;
+        } else {
+            $entry->completeFinanceEntry = 0;
+            $entry->stay_fee = 0;
+        }
         $entry->save();
 
         return redirect()->back()->with('success', 'تمت إضافة الترسيم بنجاح.');

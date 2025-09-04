@@ -22,11 +22,13 @@ class EntryStatementAdditionalFeeController extends Controller
         ]);
 
         $entry = EntryStatement::findOrFail($entryId);
-        if ( $entry->is_checked_in) {
+        if ($entry->is_checked_in) {
             $entry->completeFinanceExit = 0;
         } else {
+            if ($entry->completeFinanceEntry == 1) {
+                $entry->stay_fee = 0;
+            }
             $entry->completeFinanceEntry = 0;
-            $entry->stay_fee = 0;
         }
         $entry->save();
 

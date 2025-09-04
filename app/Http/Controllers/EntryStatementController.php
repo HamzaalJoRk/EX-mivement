@@ -242,8 +242,10 @@ class EntryStatementController extends Controller
         if ($entry->is_checked_in) {
             $entry->completeFinanceExit = 0;
         } else {
+            if ($entry->completeFinanceEntry == 1) {
+                $entry->stay_fee = 0;
+            }
             $entry->completeFinanceEntry = 0;
-            $entry->stay_fee = 0;
         }
         $entry->save();
         UserLogHelper::log('اضافة مخالفة', 'رقم الطلب: ' . $entry->serial_number);

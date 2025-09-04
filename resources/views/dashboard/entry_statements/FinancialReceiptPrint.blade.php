@@ -207,6 +207,14 @@
 
         <div class="footer">الصندوق</div>
     </div>
+    <script>
+        window.onload = function () {
+            window.print();
+            setTimeout(function () {
+                window.location.href = "{{ route('entrySearch') }}";
+            }, 1000); 
+        }
+    </script>
 
     <script>
         const today = new Date();

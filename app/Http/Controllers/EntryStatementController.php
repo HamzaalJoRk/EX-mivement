@@ -523,11 +523,23 @@ class EntryStatementController extends Controller
         $existing = EntryStatement::where('book_number', $book_number)->firstOrFail();
         if ($existing->car_type == 'سيارات سورية') {
             $stay_fee = 0;
+            $stay_duration = 0;
+            $is_checked_in = 0;
+            $completeFinanceEntry = 1;
+            $completeFinanceExit = 1;
         } else {
             if ($existing->book_type == 'خاص') {
                 $stay_fee = 10;
+                $stay_duration = 0;
+                $completeFinanceEntry = 0;
+                $is_checked_in = 0;
+                $completeFinanceExit = 0;
             } elseif ($existing->book_type == 'عام') {
                 $stay_fee = 0;
+                $stay_duration = 0;
+                $completeFinanceEntry = 1;
+                $is_checked_in = 0;
+                $completeFinanceExit = 1;
             }
         }
 
@@ -539,8 +551,11 @@ class EntryStatementController extends Controller
             'car_nationality' => $existing->car_nationality,
             'book_number' => $existing->book_number,
             'book_type' => $existing->book_type,
+            'is_checked_in' => $is_checked_in,
             'border_crossing_id' => auth()->user()->border_crossing_id,
-            'stay_duration' => $existing->stay_duration,
+            'stay_duration' => $stay_duration,
+            'completeFinanceEntry' => $completeFinanceEntry,
+            'completeFinanceExit' => $completeFinanceExit,
             'stay_fee' => $stay_fee,
             'type' => 'دخول وخروج',
         ]);

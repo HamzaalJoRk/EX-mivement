@@ -176,12 +176,10 @@
                                         <i class="fas fa-eye"></i>
                                     </a>
 
-                                    <!-- @if (auth()->user()->hasRole('Admin')) -->
                                         <a href="{{ route('entry_statements.edit', Crypt::encrypt($entry->id)) }}"
                                             class="btn btn-primary btn-sm" title="تعديل">
                                             <i class="fas fa-edit"></i>
                                         </a>
-                                    <!-- @endif -->
 
                                     @if (auth()->user()->hasRole('Admin'))
                                         <button onclick="confirmDelete({{ $entry->id }})" class="btn btn-danger btn-sm" title="حذف">

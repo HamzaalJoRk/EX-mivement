@@ -394,22 +394,22 @@ class EntryStatementController extends Controller
                     $validated['stay_duration'] = 0;
                     break;
                 case 'سيارات لبنانية':
-                    $existing = EntryStatement::where('car_number', $car_number)->first();
-                    if ($existing) {
-                        if ($existing->book_type == 'خاص') {
-                            if ($validated['has_commitment']) {
-                                $validated['stay_fee'] = 15;
-                            } else {
-                                $validated['stay_fee'] = 10;
-                            }
-                            $validated['stay_duration'] = 0;
-                        } elseif ($existing->book_type == 'عام') {
-                            $validated['stay_fee'] = 0;
-                            $validated['stay_duration'] = 0;
-                            $validated['completeFinanceEntry'] = 1;
-                            $validated['completeFinanceExit'] = 1;
-                        }
-                    } else {
+                    // $existing = EntryStatement::where('car_number', $car_number)->first();
+                    // if ($existing) {
+                    //     if ($existing->book_type == 'خاص') {
+                    //         if ($validated['has_commitment']) {
+                    //             $validated['stay_fee'] = 15;
+                    //         } else {
+                    //             $validated['stay_fee'] = 10;
+                    //         }
+                    //         $validated['stay_duration'] = 0;
+                    //     } elseif ($existing->book_type == 'عام') {
+                    //         $validated['stay_fee'] = 0;
+                    //         $validated['stay_duration'] = 0;
+                    //         $validated['completeFinanceEntry'] = 1;
+                    //         $validated['completeFinanceExit'] = 1;
+                    //     }
+                    // } else {
                         if ($validated['book_type'] == 'خاص') {
                             if ($validated['has_commitment']) {
                                 $validated['stay_fee'] = 15;
@@ -423,25 +423,25 @@ class EntryStatementController extends Controller
                             $validated['completeFinanceEntry'] = 1;
                             $validated['completeFinanceExit'] = 1;
                         }
-                    }
+                    // }
                     break;
                 case 'سيارات أردنية':
-                    $existing = EntryStatement::where('car_number', $car_number)->first();
-                    if ($existing) {
-                        if ($existing->book_type == 'خاص') {
-                            if ($validated['has_commitment']) {
-                                $validated['stay_fee'] = 15;
-                            } else {
-                                $validated['stay_fee'] = 10;
-                            }
-                            $validated['stay_duration'] = 0;
-                        } elseif ($existing->book_type == 'عام') {
-                            $validated['stay_fee'] = 0;
-                            $validated['stay_duration'] = 0;
-                            $validated['completeFinanceEntry'] = 1;
-                            $validated['completeFinanceExit'] = 1;
-                        }
-                    } else {
+                    // $existing = EntryStatement::where('car_number', $car_number)->first();
+                    // if ($existing) {
+                    //     if ($existing->book_type == 'خاص') {
+                    //         if ($validated['has_commitment']) {
+                    //             $validated['stay_fee'] = 15;
+                    //         } else {
+                    //             $validated['stay_fee'] = 10;
+                    //         }
+                    //         $validated['stay_duration'] = 0;
+                    //     } elseif ($existing->book_type == 'عام') {
+                    //         $validated['stay_fee'] = 0;
+                    //         $validated['stay_duration'] = 0;
+                    //         $validated['completeFinanceEntry'] = 1;
+                    //         $validated['completeFinanceExit'] = 1;
+                    //     }
+                    // } else {
                         if ($validated['book_type'] == 'خاص') {
                             if ($validated['has_commitment']) {
                                 $validated['stay_fee'] = 15;
@@ -455,7 +455,7 @@ class EntryStatementController extends Controller
                             $validated['completeFinanceEntry'] = 1;
                             $validated['completeFinanceExit'] = 1;
                         }
-                    }
+                    // }
                     break;
             }
 

@@ -176,14 +176,18 @@
                                         <i class="fas fa-eye"></i>
                                     </a>
 
-                                    <a href="{{ route('entry_statements.edit', Crypt::encrypt($entry->id)) }}"
-                                        class="btn btn-primary btn-sm" title="تعديل">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
+                                    <!-- @if (auth()->user()->hasRole('Admin')) -->
+                                        <a href="{{ route('entry_statements.edit', Crypt::encrypt($entry->id)) }}"
+                                            class="btn btn-primary btn-sm" title="تعديل">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                    <!-- @endif -->
 
-                                    <button onclick="confirmDelete({{ $entry->id }})" class="btn btn-danger btn-sm" title="حذف">
-                                        <i class="fas fa-trash-alt"></i>
-                                    </button>
+                                    @if (auth()->user()->hasRole('Admin'))
+                                        <button onclick="confirmDelete({{ $entry->id }})" class="btn btn-danger btn-sm" title="حذف">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    @endif
 
                                     <form id="delete-form-{{ $entry->id }}"
                                         action="{{ route('entry_statements.destroy', $entry->id) }}" method="POST"
@@ -227,7 +231,7 @@
             var table = $('#entryTable').DataTable({
                 dom: 'Bfrtip',
                 paging: false,
-                ordering: false,       
+                ordering: false,
                 info: false,
                 scrollX: true,
                 autoWidth: false,
@@ -310,19 +314,19 @@
             Swal.fire({
                 title: 'إجراء مطلوب',
                 html: `
-                                                                <div>
-                                                                    <a href="#" class="btn btn-danger btn-sm"
-                                                                        title="عرض">
-                                                                        تسجيل خروج
-                                                                    </a>
-                                                                </div>
-                                                                <div class="mt-2">
-                                                                    <a href="#" class="btn btn-info btn-sm"
-                                                                        title="عرض">
-                                                                        تمديد فترة البقاء
-                                                                    </a>
-                                                                </div>
-                                                            `,
+                                                                        <div>
+                                                                            <a href="#" class="btn btn-danger btn-sm"
+                                                                                title="عرض">
+                                                                                تسجيل خروج
+                                                                            </a>
+                                                                        </div>
+                                                                        <div class="mt-2">
+                                                                            <a href="#" class="btn btn-info btn-sm"
+                                                                                title="عرض">
+                                                                                تمديد فترة البقاء
+                                                                            </a>
+                                                                        </div>
+                                                                    `,
                 showCancelButton: true,
                 confirmButtonText: 'تأكيد',
                 cancelButtonText: 'إلغاء',
